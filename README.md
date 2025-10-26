@@ -7,7 +7,7 @@ The stability landscape concept illustrates the relationship between community s
 ![Stability landscape concept and empirically reconstructed assembly landscapes.](figures/Fig1a_assemblylandscape_concept.png)
 
 # empirical estimation using energy landscape analysis
-Based on the Ising model in statistical physics, the probability of observing a given community state (membership) can be expressed as a linear combination of effects from implicit (unobserved) factors, explicit (observed) factors, and associations among species/taxa (Suzuki et al., 2021 [![DOI](10.1002/ecm.1469)](10.1002/ecm.1469)). 
+Based on the Ising model in statistical physics, the probability of observing a given community state (membership) can be expressed as a linear combination of effects from implicit (unobserved) factors, explicit (observed) factors, and associations among species/taxa (Suzuki et al., 2021 [![DOI](https://img.shields.io/badge/DOI-10.1002%2Fecm.1469-blue.svg)](https://doi.org/10.1002/ecm.1469)). 
 The lower the "energy" index, the more probable the corresponding community state is. The landscape topography is assumed to change depending on background environmental conditions.
 
 ![Model of energy landscape analysis](figures/Fig1b_model.png)
