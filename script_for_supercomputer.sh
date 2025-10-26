@@ -4,7 +4,7 @@ ncpu=6
 nmem=24
 data=241113
 
-mainDIR="/aptmp/mikihito/02_ELA_v060_241113_2"
+mainDIR="XXXXXXXX"
 LOGPATH="LOGs2"
 MODULE="R"
 
@@ -54,7 +54,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}_$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}_$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}_$data.R"
 
 sed -i "38s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}_$data.R"
 
@@ -97,7 +97,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 
 sed -i "22s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "23s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -144,7 +144,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 
 sed -i "12s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "13s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -191,7 +191,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 
 sed -i "12s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "13s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -235,7 +235,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "18s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}_$data.R"
 sed -i "19s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -282,7 +282,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 
 sed -i "18s/.*/dir_02_03='02_03_summarize_basedR2'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "19s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -325,7 +325,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "18s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}_$data.R"
 sed -i "19s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -368,7 +368,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "15s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}_$data.R"
 sed -i "16s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -411,7 +411,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "39s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data.R"
 sed -i "40s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -456,7 +456,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "Rscripts/${TASK}/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "Rscripts/${TASK}/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "Rscripts/${TASK}/${TASK}$data.R"
 
 sed -i "183s/.*/n.core=${ncpu}/" "Rscripts/${TASK}/${TASK}$data.R"
 sed -i "184s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "Rscripts/${TASK}/${TASK}$data.R"
@@ -499,7 +499,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "39s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data.R"
 sed -i "40s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -542,7 +542,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data.R"
 
 sed -i "155s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data.R"
 sed -i "156s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data.R"
@@ -592,7 +592,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "40s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "41s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "42s/.*/dir_02_05='02_05_summary_taxa_select'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -644,7 +644,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "40s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "41s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "42s/.*/sp=$f/" "scl_Rscripts/${TASK}$data$f.R"
@@ -695,7 +695,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "40s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "41s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "42s/.*/dir_02_05='02_05_summary_taxa_select'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -744,7 +744,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "8s/.*/dir_03_03='03_03_ELA_withRA_4step_rep_241212'/" "scl_Rscripts/${TASK}$data$f.R"
 
 
@@ -793,7 +793,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "219s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "220s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "221s/.*/dir_02_05='02_05_summary_taxa_select'/" "scl_Rscripts/${TASK}$data$f.R"
@@ -853,7 +853,7 @@ source /etc/profile.d/modules.sh
 module load $MODULE
 
 echo "setwd(\"${mainDIR}\")" > "scl_Rscripts/${TASK}$data$f.R"
-cat "/aptmp/mikihito/02_ELA_v060_241113_2/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
+cat "XXX/Script/${TASK}.R" >> "scl_Rscripts/${TASK}$data$f.R"
 sed -i "227s/.*/ELA_prep_dir='02_01_ELA_prep_abundance_threshold'/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "228s/.*/n.core=${ncpu}/" "scl_Rscripts/${TASK}$data$f.R"
 sed -i "229s/.*/dir_02_05='02_05_summary_taxa_select'/" "scl_Rscripts/${TASK}$data$f.R"
