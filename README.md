@@ -38,3 +38,12 @@ From the original data matrix excluding OTUs annotated as a focal genus, coverag
 ![statistical inference of keystone taxa](figures/FigS1b_explore_keytstone.png)
 
 # Contents in this repository
+We conducted series of the snalyses in this study using SuperComputer System, Institute for Chemical Research, Kyoto University. The outputs in the local computer and the SuperComputer System were uploaded separetely.
+
+Base_data: Raw data-sets used in this study
+Output: Output of analyses using the local computer. some large folders were excluded
+Output_supercomputer: Output of analyses using the SuperComputer System. some large folders were excluded
+Script_in_local_computer: R script for analyses using using the local computer.
+packages: R packages and original source codes for analyses using the local computer.
+working_directory_in_supercomputer: The working directory in the SuperComputer System. The directory contains R script for analyses using ("Script") and addtional data for analyses prepared in the local computer ("Import_data" and "color"). The directories "Base_data" and "packages", which also included there, were excluded in this repository.
+
