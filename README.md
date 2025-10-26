@@ -36,3 +36,5 @@ We performed coverage-based rarefaction for the root samples. In a matrix of fam
 From the original data matrix excluding OTUs annotated as a focal genus, coverage-based rarefaction was conducted. Binarization was applied to the same set of families as in above energy landscape analysis. In parallel, the whole community matrix was rarefied, and the genus-level compositions were subjected to CLR transformation. Energy landscape analysis was performed using host plant genera (dummy variables) and CLR-transformed relative read counts (+1) of the focal genus as external factors. “Keystoneness” indices were calculated based on comparisons between the inferred energy landscapes under conditions without the focal genus and those where it was present at the representative abundances (25%, 50%, and 75% quantiles of its relative abundance) in community assembly simulations.
 
 ![statistical inference of keystone taxa](figures/FigS1b_explore_keytstone.png)
+
+# Contents in this repository
