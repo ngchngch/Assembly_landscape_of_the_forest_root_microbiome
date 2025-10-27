@@ -3,11 +3,13 @@
 # Workflows
 
 ## Bioinfomatics
-We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs were converted to a sample-OTU matrix using the scripts in "Base_data/Bioinfomatics".
+We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs (in the directory "Base_data/Bioinfomatics/seqtab") were converted to a sample-OTU matrix using the scripts in "Base_data/Bioinfomatics".
 
 We then applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets.
 
 ### Script
+**Merge multiple sequence outputs**
+Base_data/Bioinfomatics/Script/01_merge_and_decontm_2libararies.R
 **Rarefaction**
 Script_in_local_computer/01_LOO_covrarefy.R
 
