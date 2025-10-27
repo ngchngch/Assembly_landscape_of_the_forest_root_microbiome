@@ -1,41 +1,66 @@
-# Assembly_landscape_of_the_forest_root_microbiome
-In this repository, we showed "assembly landscape" concept and algorisms of keystone inference based on it.
+# Assembly Landscape of the Forest Root Microbiome
 
-# Relationship between clasical stability landscape and empirically reconstructed assembly landscapes
-The stability landscape concept illustrates the relationship between community structure and stability (left), whereas assembly landscapes, inferred from empirical data, describe the statistical relationship between community states and their probabilities of observation (right). Both convergence toward true attractors and prolonged transients around a “ghost attractor” on a conceptual stability landscape can result in clusters of observations in empirical datasets. In statistical analyses of assembly landscapes, assembly toward true attractors is represented by deep basins, while long transients around ghost attractors can be inferred as shallow basins. Assembly landscapes estimated by the statistical framework of energy landscape analysis (described below) are referred to as energy landscapes.
+This repository presents the "assembly landscape" concept and the algorithms for keystone inference based on that concept.
 
-![Stability landscape concept and empirically reconstructed assembly landscapes.](figures/Fig1a_assemblylandscape_concept.png)
+# Relationship between Classical Stability Landscapes and Empirically Reconstructed Assembly Landscapes
 
-# empirical estimation using energy landscape analysis
-Based on the Ising model in statistical physics, the probability of observing a given community state (membership) can be expressed as a linear combination of effects from implicit (unobserved) factors, explicit (observed) factors, and associations among species/taxa (Suzuki et al., 2021 [![DOI](https://img.shields.io/badge/DOI-10.1002%2Fecm.1469-blue.svg)](https://doi.org/10.1002/ecm.1469)). 
+The stability landscape concept illustrates the relationship between community structure and ecological stability (Fig. 1-left). In contrast, assembly landscapes reconstructed from empirical data describe the statistical relationship between observed community states and their probabilities (Fig. 1-right). 
 
-  The lower the "energy" index, the more probable the corresponding community state is. The landscape topography is assumed to change depending on background environmental conditions.
+Both convergence toward true attractors and prolonged transients around a "ghost attractor" in the conceptual stability landscape can produce clustered observations in empirical datasets. In the assembly landscape, assembly toward true attractors appears as deep basins, whereas prolonged transients around ghost attractors are inferred as shallow basins.
+
+![Stability landscape concept and assembly landscapes.](figures/Fig1a_assemblylandscape_concept.png)
+*Fig. 1| Conceptual stability landscape (left) and empirically reconstructed assembly landscapes (right).*
+
+# Empirical Estimation Using Energy Landscape Analysis
+Based on the Ising model in statistical physics, the probability of observing a given community state (membership) can be expressed as a linear combination of effects from implicit (unobserved) factors, explicit (observed) factors, and associations among species/taxa ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)). 
+
+Lower "energy" values correspond to more probable community states. We model the landscape topography as dependent on background environmental conditions.
 
 ![Model of energy landscape analysis](figures/Fig1b_model.png)
+*Fig. 2| Energy landscape analysis.*
 
-Based on the maximum-entropy fitting of the model parameters, the "energy" of each community state is inferred. The topography of the "energy landscape" is assumed to change depending on background environmental conditions. Community assembly is assumed to proceed toward basin bottoms within the "assembly graphs," in which community states that differ by the presence or absence of a single species are connected by one step.
+Based on the maximum-entropy fitting of the model parameters, the "energy" of each community state is inferred. The topography of the "energy landscape" is assumed to change depending on background environmental conditions. Community assembly is assumed to proceed toward basin bottoms within the "assembly graphs," in which community states that differ by the presence or absence of a single species are connected by a single step.
 
 ![Statistically inferred assembly landscapes](figures/Fig1c_inferred_landscapes.png)
+*Fig. 3| Statistically reconstructed assembly landscapes.*
 
-# Keystone concept based on assembly landscape reorganization
-Given that assembly landscapes represent community assembly rules, a “keystone microbes” can be defined as one whose changes in abundance drastically change the landscape architecture. The extent of the landscape reorganization is quantitatively evaluated in terms of changes in the composition and distribution of basin bottoms (Δtopography; left) and changes in the evenness of basin distributions (Δevenness; right) along the abundance gradient of a focal species/taxon.
+# Keystone Concept Based on Assembly Landscape Reorganization
+Given that assembly landscapes represent community assembly rules, “keystone microbes” can be defined as one whose changes in abundance drastically change the landscape architecture. The extent of the landscape reorganization is quantitatively evaluated in terms of changes in the composition and distribution of basin bottoms (*Δtopography*; left) and changes in the evenness of basin distributions (*Δevenness*; right) along the abundance gradient of a focal species/taxon.
 
 ![Large shift in assembly landscape](figures/Fig1de_landchange_concept.png)
+*Fig. 4| Large shift in the assembly landscape architecture.*
 
-The dependence of energy landscape topography on the abundance of a focal species/taxon is inferred (detailed workflow are described below). Changes in assembly landscape architecture are then evaluated by comparing the topography inferred in the absence of the focal species/taxon with that estimated under the assumption of an intermediate abundance level (the median abundance across samples in which the genus was present). Specifically, across 20,000 community assembly simulations on the inferred landscapes, mean Jaccard distance of corresponding destinations (basin bottoms) calculated (Δtopography). Likewise, changes in the evenness of basin distributions were calculated as the difference in Shannon entropy between the two landscapes under different abundance scenarios (Δevenness).
+We quantify landscape reorganization using two metrics along the abundance gradient of a focal taxon: changes in the overall landscape architecture (*Δtopography*; Fig. 5-left) and changes in the evenness of basin distributions (*Δevenness*; Fig. 5-right).
+
+Specifically, we ran community assembly simulations with 20,000 randamly generated initial communities on the inferred landscapes and computed the mean Jaccard distance between corresponding destinations (basin bottoms) as Δtopography. Similarly, Δevenness was defined as the difference in Shannon entropy of the distributions of the basin proportions between the two landscapes under different abundance scenarios.
 
 ![Keystone indexes](figures/Fig1g_indexes.png)
+*Fig. 5| "Kestoneness" metrics.*
 
-# Workflows in this study
-## Energy landscape analysis
-We performed coverage-based rarefaction for the root samples. In a matrix of family-level taxonomic compositions, relative read counts of each family were binarized with a threshold described. To make the subsequent statistical analysis (energy landscape analysis) computationally feasible, we prioritized and selected families based on their contribution to overall community structure, evaluated by PerMANOVA (R²; Supplementary Tables S1 and S2). The family set showing the highest correspondence between its binarized pattern and the abundance-based community structure was selected among candidate sets determined by their R² values. Energy landscape analysis was then conducted using the family-set with host plant genera (encoded as dummy variables) as explanatory variables.
+# Workflows in this Study
+## Energy Landscape Analysis
+We applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)). In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold described in Figure 6. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
 
 ![Energylandscape estimation](figures/FigS1a_ela_prep.png)
+*Fig. 6| Input data for energy landscape analysis.*
 
-## Statistical inference of keystone taxa
-From the original data matrix excluding OTUs annotated as a focal genus, coverage-based rarefaction was conducted. Binarization was applied to the same set of families as in above energy landscape analysis. In parallel, the whole community matrix was rarefied, and the genus-level compositions were subjected to CLR transformation. Energy landscape analysis was performed using host plant genera (dummy variables) and CLR-transformed relative read counts (+1) of the focal genus as external factors. “Keystoneness” indices were calculated based on comparisons between the inferred energy landscapes under conditions without the focal genus and those where it was present at the representative abundances (25%, 50%, and 75% quantiles of its relative abundance) in community assembly simulations.
+## Statistical Inference of Keystone Taxa
+Starting from the original data matrix with OTUs annotated as the focal genus removed, we performed coverage-based rarefaction. Binarization used the same family set as in the energy landscape analysis described above. In parallel, we rarefied the full community matrix and applied a centered log-ratio (CLR) transformation to genus-level compositions. 
+
+We then performed energy landscape analysis including host plant genera (dummy variables) and the CLR-transformed relative abundance of the focal genus as external variables. "Keystoneness" indices were computed by comparing energy landscapes inferred under two conditions: (1) without the focal genus and (2) with the focal genus fixed at representative abundances (25%, 50%, and 75% quantiles of its observed relative abundance), using community assembly simulations.
 
 ![statistical inference of keystone taxa](figures/FigS1b_explore_keytstone.png)
+*Fig. 7| Input data for the keystone exploration.*
+
+## Repository Contents
+
+- `Base_data/` — Raw datasets used in this study.
+- `Output/` — Results produced on the local computer (some large folders excluded).
+- `Output_supercomputer/` — Results produced on the supercomputer (some large folders excluded).
+- `Script_in_local_computer/` — R scripts used for analyses on the local computer.
+- `packages/` — R packages and custom source code used for local analyses.
+- `working_directory_in_supercomputer/` — Working directory structure used on the supercomputer, containing the analysis scripts (`Script/`) and additional data prepared on the local computer (`Import_data/`, `color/`). Note: `Base_data/` and `packages/` referenced here are not duplicated in this repository.
+
 
 # Contents in this repository
 We conducted series of the snalyses in this study using SuperComputer System, Institute for Chemical Research, Kyoto University. The outputs in the local computer and the SuperComputer System were uploaded separetely.
