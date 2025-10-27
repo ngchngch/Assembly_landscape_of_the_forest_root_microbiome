@@ -17,11 +17,28 @@ working_directory_in_supercomputer/Script/02_07_assemblygraph_onlyBasin.R
 ## Statistical Inference of Keystone Taxa
 
 
-Starting from the original data matrix () with OTUs annotated as the focal genus removed, we performed coverage-based rarefaction. Binarization used the same family set as in the energy landscape analysis described above. In parallel, we rarefied the full community matrix and applied a centered log-ratio (CLR) transformation to genus-level compositions. 
+Starting from the original data matrix with OTUs annotated as the focal genus removed, we performed coverage-based rarefaction. Binarization used the same family set as in the energy landscape analysis described above. In parallel, we rarefied the full community matrix and applied a centered log-ratio (CLR) transformation to genus-level compositions. 
 
 
 We then performed energy landscape analysis including host plant genera (dummy variables) and the CLR-transformed relative abundance of the focal genus as external variables. "Keystoneness" indices were computed by comparing energy landscapes inferred under two conditions: (1) without the focal genus and (2) with the focal genus fixed at representative abundances (25%, 50%, and 75% quantiles of its observed relative abundance), using community assembly simulations.
 
+### Script
+**Community assembly simulations**
+working_directory_in_supercomputer/Script/03_01_ELA_withRA_4step.R
+
+**Null model simulations**
+working_directory_in_supercomputer/Script/03_02_randELA_withRA_4s_fixPS_1_3000.R
+working_directory_in_supercomputer/Script/03_02_randELA_withRA_4s_fixPS_3001_6000.R
+working_directory_in_supercomputer/Script/03_02_randELA_withRA_4s_fixPS_6001_9000.R
+working_directory_in_supercomputer/Script/03_02_randELA_withRA_4s_fixPS_9001_10500.R
+working_directory_in_supercomputer/Script/03_02_summarize_randELA_withRA_fixP_250306.R
+
+**Evaluation variances of the keystoneness metrics**
+working_directory_in_supercomputer/Script/03_03_ELA_withRA_4step_rep.R
+working_directory_in_supercomputer/Script/03_04_landscape_change_repuroducibility.R
+
+**Flow diagrams**
+working_directory_in_supercomputer/Script/03_05_states_flow_diagram.R
 
 ## Repository Contents
 
