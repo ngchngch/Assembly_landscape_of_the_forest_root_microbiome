@@ -3,12 +3,14 @@
 # Workflows
 
 ## Bioinfomatics
+We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs were converted to sample-OTU matrix using the scripts in "Base_data/Bioinfomatics".
 
-We applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets.
+We then applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets.
 
 ### Script
 **Rarefaction**
 Script_in_local_computer/01_LOO_covrarefy.R
+
 ## Energy Landscape Analysis
 
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
@@ -49,11 +51,13 @@ working_directory_in_supercomputer/Script/03_04_landscape_change_repuroducibilit
 working_directory_in_supercomputer/Script/03_05_states_flow_diagram.R
 
 **graphics**
+
 Script_in_local_computer/03_06_Zhistgram_250321.R Script_in_local_computer/03_07_graphics_Zconv_landchanges_biplot_250312.R Script_in_local_computer/03_08_Zeven_abundance_occurence_250507.R Script_in_local_computer/03_08_Zland_abundance_occurence_250507.R Script_in_local_computer/03_10_02_graphics_Fullstates_flow_Spl_250813.R 
 
 
 ## Additional analyses
 ### Scripts
+
 Script_in_local_computer/02_08_hostpreference_Family.R
 Script_in_local_computer/04_rarefaction_barplot.R
 
