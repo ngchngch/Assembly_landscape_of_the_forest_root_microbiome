@@ -147,7 +147,7 @@ sink()
 #############################
 library(seqinr)
 
-referencepath='reference/silva_nr99_v138_train_set_append_stdDNA.fa'
+referencepath='reference/silva_nr99_v138_train_set.fa'
 
 seqfasta <- read.fasta(sprintf('%s/OTUseq_0.97_rename.fasta',outputdir))
 
