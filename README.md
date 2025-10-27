@@ -6,13 +6,21 @@
 
 We applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets.
 
+### Script
+**Rarefaction**
+Script_in_local_computer/01_LOO_covrarefy.R
 ## Energy Landscape Analysis
 
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
 
 ### Scripts
+**Energy landscape analysis in the SuperComputer System**
 working_directory_in_supercomputer/Script/02_06_ELA.R
 working_directory_in_supercomputer/Script/02_07_assemblygraph_onlyBasin.R
+
+**Some graphics**
+These script run after the analyses about flow diagrams of energy landscape.
+Script_in_local_computer/03_11_SSheatmap_fullELA_recolor_250501.R Script_in_local_computer/03_12_DG_fullELA_recolor.R
 
 ## Statistical Inference of Keystone Taxa
 
@@ -39,6 +47,15 @@ working_directory_in_supercomputer/Script/03_04_landscape_change_repuroducibilit
 
 **Flow diagrams**
 working_directory_in_supercomputer/Script/03_05_states_flow_diagram.R
+
+**graphics**
+Script_in_local_computer/03_06_Zhistgram_250321.R Script_in_local_computer/03_07_graphics_Zconv_landchanges_biplot_250312.R Script_in_local_computer/03_08_Zeven_abundance_occurence_250507.R Script_in_local_computer/03_08_Zland_abundance_occurence_250507.R Script_in_local_computer/03_10_02_graphics_Fullstates_flow_Spl_250813.R 
+
+
+## Additional analyses
+### Scripts
+Script_in_local_computer/02_08_hostpreference_Family.R
+Script_in_local_computer/04_rarefaction_barplot.R
 
 ## Repository Contents
 
