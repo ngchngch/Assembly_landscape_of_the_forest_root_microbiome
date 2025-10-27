@@ -10,8 +10,9 @@ We applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic c
 
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
 
--working_directory_in_supercomputer/Script/02_06_ELA.R
--working_directory_in_supercomputer/Script/02_07_assemblygraph_onlyBasin.R
+### Scripts
+working_directory_in_supercomputer/Script/02_06_ELA.R
+working_directory_in_supercomputer/Script/02_07_assemblygraph_onlyBasin.R
 
 ## Statistical Inference of Keystone Taxa
 
