@@ -1,0 +1,2 @@
+Fprimer	forward	Rprimer	reverse	filter	denosing	annotation	minLen	minQ	PercLQ	trancWindow	maxEE	truncR	avgqual	minindent	maxpopposer	minsoratio	NNC	reference
+515f	NNNNNNGTGYCAGCMGCCGCGGTAA	806rB	NNNNNNGGACTACNVGGGTWTCTAAT	dada2	dada2	dada2	200	10	0.1	5	2	240	15	0.99	0.05	19	5,90%	silva_nr99_v138_train_set_append_stdDNA.fa
