@@ -5,18 +5,50 @@
 
 
 ### Example
+Generating community dynamics comprasing 80 species
+
 ```
-# Parameters
+# Simulation
 total_sample <- 200
 rep =200
 nrep_eval <- 3
+n.core <- 8
+
 time=100
 Nsp=c(80)
 connectance=0.2
 A_self = -1
-n.core <- 8
 ```
+```
+#read parameters of Model1
+A <- readRDS("examples/datasets/gLV_simulation/Amatrix_seed0.2.rds")[[1]]
+r <- readRDS("examples/datasets/gLV_simulation/rparameter_seed0.2_Nsp80.rds")[[1]]
 
+# %% Run simulation
+
+set = expand.grid(Nsp, connectance, 1:rep)|>
+  set_names(c("N", "C", "rep"))|>
+  as.matrix()
+
+cluster = makeCluster(n.core)
+registerDoParallel(cluster)  
+
+dynamics = foreach(n=1:nrow(set),
+                   .packages = c("igraph", "tidyverse", "deSolve", "doParallel"))%dopar%{
+                     
+                     s = paste(set[n,1:2], collapse="_")
+                     N=set[n,1]
+                     r_set <- r
+                     
+                     mat = gen_dyn(time=time, dt=1000,
+                                   A=A, r=r_set, N0=runif(N), type="gLV") #ode(y = N0(N), times = seq(1,500), func = lv_fun, parms = list(A=A, r=runif(N)))[,-1]
+                     
+                     return( list(dynamics=mat) )
+                     
+                   }|> set_names(apply(set,1,paste, collapse="_"))
+
+stopCluster(cluster)
+```
 ## Bioinfomatics
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
 
