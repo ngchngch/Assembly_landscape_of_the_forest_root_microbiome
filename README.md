@@ -1,11 +1,13 @@
 # Assembly Landscape of the Forest Root Microbiome
+## Keystone evaluation framework based on "assembly landscape"
+
 
 # Workflows
 ## Validation using generalized Lotka-Volterra simulations
-
+At first, we evaluated the performance of the proposed framework using generalized Lotka-Volterra models
 
 ### Example
-Generating community dynamics comprasing 80 species
+#### 1. Generating community dynamics comprasing 80 species
 
 ```
 # Simulation
@@ -49,6 +51,104 @@ dynamics = foreach(n=1:nrow(set),
 
 stopCluster(cluster)
 ```
+#### 2. Sampling community compostions from the simulated dynamics
+```
+##create community matrix
+non_pertabate = map(dynamics, ~.x[[1]])
+
+sim_set <- matrix(unlist(strsplit(names(non_pertabate),"_")),ncol=3,byrow=TRUE)
+
+mat0 <- NULL
+for(i in 1:nrow(sim_set[sim_set[,2]==as.character(connectance),])){
+  mat0 <- rbind(mat0,non_pertabate[[which(sim_set[,2]==as.character(connectance))[i]]][sample(1:time,total_sample/rep),])
+}
+
+d_bray <- vegdist(mat0,method="bray")
+
+qt <- quantile(mat0, probs = c(0.1,0.9))
+bin_th <- seq(qt[1],qt[2], length.out = 30)
+
+cr <- c()
+for(i in 1:length(bin_th)){
+  cat("\r", i, "/", length(bin_th))
+  bth <- bin_th[i]
+  mat2 <- mat0
+  mat2[mat2<=bth] <- 0
+  mat2[mat2>0] <- 1
+  d_jac <- vegdist(mat2,method="jaccard")
+  cr[i] <- cor(d_bray, d_jac,method = "kendall")
+}
+
+max_cr <- which.max(cr)
+best_bin_th <- bin_th[max_cr[order(max_cr)[1]]]
+
+mat2 <- mat0
+mat2[mat2<=best_bin_th] <- 0
+mat2[mat2>0] <- 1
+```
+#### 3. Evaluating species-specific influences of their presence on community dynamics
+We replicate this evaluation 3 times here to make this process feasible in local computer
+```
+cluster = makeCluster(n.core)
+registerDoParallel(cluster)  
+
+kness = foreach(n=1:nrep_eval,
+                .packages = c("igraph", "tidyverse", "deSolve", "doParallel"))%dopar%{
+                  
+                  diff <- NULL
+                  com_wis <- NULL; com_wois <- NULL; b_com <- NULL
+                  
+                  for(i in 1:N){
+                    init <- c(runif(N-1),0.5)[order(c(c(1:N)[-i],i))]
+                    com_woi = gen_dyn(time=time, dt=1000, A=A[-i,-i], r=r[-i],
+                                      N0=init[-i], type="gLV")
+                    com_wi = gen_dyn(time, dt=1000, A, r,
+                                     init, type="gLV")[,-i]
+                    
+                    abruptness_diffstart = calc_aburptness(before=com_woi,
+                                                           after=com_wi,
+                                                           ab_th = best_bin_th)
+                    
+                    names(abruptness_diffstart) <- paste0(names(abruptness_diffstart),"_diffstart")
+                    
+                    diff = rbind(diff, c(set[n,], id=i, 
+                                         abruptness_diffstart[1:2]))
+                    
+                  }
+                  
+                  keystoneness = 
+                    data.frame(diff,r=r) |>
+                    left_join(
+                      calc_centrality(A),
+                      by="id"
+                    )
+                  # 
+                  return( list(keystoneness=keystoneness) )
+                  
+                }
+
+stopCluster(cluster)
+
+keystonness = map_df(kness, ~.x[[1]])
+
+mBC2 <- foreach(i = 1:Nsp, .combine="c")%do% {
+  return(mean(keystonness[keystonness$id == i,
+                          "BC_diffstart"],na.rm=TRUE))
+}
+
+
+mJC2 <- foreach(i = 1:Nsp, .combine="c")%do% {
+  return(mean(keystonness[keystonness$id == i,
+                          "Jaccard_diffstart"],na.rm=TRUE))
+}
+
+key_res <- data.frame(connectance=connectance,
+                      mBC_diffstart=mBC2,
+                      mJC_diffstart=mJC2
+)
+```
+
+
 ## Bioinfomatics
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
 
