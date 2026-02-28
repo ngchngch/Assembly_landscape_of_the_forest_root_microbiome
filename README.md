@@ -1,6 +1,9 @@
 # Assembly Landscape of the Forest Root Microbiome
-## Keystone evaluation framework based on "assembly landscape"
-
+## Keystone Evaluation Framework Based on "Assembly Landscape"
+We propose a novel framework for exploring keystone species or taxa within complex microbiomes. 
+The assembly rules of the microbiome are inferred using a landscape analogy from community ecology, specifically through energy landscape analysis (Suzuki et al., 2021).
+By extending this approach, we quantify the topographic shifts of the inferred landscape in relation to the abundance of focal species (or taxa). 
+In this context, we explicitly conceptualize keystone species (or taxa) as those whose increases or decreases in abundance reorganize the rules governing microbiome assembly.
 
 # Workflows
 ## Validation using generalized Lotka-Volterra simulations
