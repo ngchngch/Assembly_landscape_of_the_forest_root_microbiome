@@ -142,12 +142,74 @@ mJC2 <- foreach(i = 1:Nsp, .combine="c")%do% {
                           "Jaccard_diffstart"],na.rm=TRUE))
 }
 
-key_res <- data.frame(connectance=connectance,
+key_res <- data.frame(sp=1:Nsp,
                       mBC_diffstart=mBC2,
                       mJC_diffstart=mJC2
 )
 ```
+4. Energy landscape analysis
+We evaluatd species-specific influence on inferred assembly landscape topography
+This process is too heavy to compute in local computer. we show the version with small number of iteration in parameter fitting & randamization process.
+```
+seed <- 12
+n_itr <- 16
+set.seed(seed)
 
+cluster = makeCluster(threads)
+registerDoParallel(cluster)
+
+mdp <- foreach(sp=1:80, .packages = c("rELA","doParallel"))%dopar%{
+  bin0 <- as.matrix(mat2[,-sp])
+  bin <- bin0[,colMeans(bin0)>0.1&colMeans(bin0)<0.9]
+  res <- Quant_landshift(bin=bin, #binary community matrix (samples x species)
+                         abundance_focal = mat0[,sp], #abundance of the focal species
+                         qt_seq = c(0.5), # abundance quantiles to evaluate
+                         itr_fit=n_itr, qth=10^-5,SS.itr=150000 #ELA parameters
+                         )
+  return(res) 
+}
+
+stopCluster(cluster)
+saveRDS(mdp,sprintf("%s/ELA_SSprob_diff.rds",save.dir))
+```
+Null model simulation were also performed using permutation of the focal species abundance.
+```
+nrandamization <- 1000
+
+stdDtop <- NULL
+for(sp in 1:80){
+  cat(sprintf("%s\n",sp))
+  
+  mdp_rand <- foreach(rand=1:nrandamization, .packages = c("rELA","doParallel"))%dopar%{
+    bin0 <- as.matrix(mat2[,-sp])
+    bin <- bin0[,colMeans(bin0)>0.1&colMeans(bin0)<0.9]
+    res <- Quant_landshift(bin=bin, #binary community matrix (samples x species)
+                           abundance_focal = mat0[sample(nrow(mat0)),sp], #abundance of the focal species
+                           qt_seq = c(0.5), # abundance quantiles to evaluate
+                           itr_fit=n_itr, qth=10^-5,SS.itr=150000 #ELA parameters
+    )
+    return(res) 
+  }
+  
+  mdpr_all <- do.call(rbind,mdp_rand)
+  
+  z_dtopo <- (mdp[mdp$ra=="perc50","d_land"]-mean(mdpr_all[mdpr_all$ra=="perc50","d_land"]))/sd(mdpr_all[mdpr_all$ra=="perc50","d_land"])
+  p_dtopo <- sum(mdpr_all[mdpr_all$ra=="perc50","d_land"]>=mdp[mdp$ra=="perc50","d_land"])/nrandamization
+  
+  stdDtop <- rbind(stdDtop,data.frame(sp=sp, z_dtopo=z_dtopo, p_dtopo=p_dtopo))
+  cat("|\n")
+}
+```
+
+5. Comparing the proposed index and community-scale influence of each species
+```
+infulences <- merge(stdDtop,key_res,by="sp")
+cor.test(influences$z_dtopo,influences$mBC_diffstart,method="spearman")
+plot(influences$z_dtopo,influences$mJC_diffstart)
+
+cor.test(influences$z_dtopo,influences$mJC_diffstart,method="spearman")
+plot(influences$z_dtopo,influences$mJC_diffstart)
+```
 
 ## Bioinfomatics
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
