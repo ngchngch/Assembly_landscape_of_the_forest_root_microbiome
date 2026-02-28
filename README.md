@@ -4,9 +4,21 @@
 
 # Workflows
 ## Validation using generalized Lotka-Volterra simulations
-At first, we evaluated the performance of the proposed framework using generalized Lotka-Volterra models
+Initially, we evaluated the performance of the proposed framework using generalized Lotka-Volterra models.
 
 ### Example
+#### 0. Load Libraries and Original Functions
+```
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(doParallel)
+library(igraph)
+library(deSolve)
+library(vegan)
+library(cluster)
+source("packages/functions_for_examples.R")
+```
 #### 1. Generating community dynamics comprasing 80 species
 
 ```
@@ -51,7 +63,7 @@ dynamics = foreach(n=1:nrow(set),
 
 stopCluster(cluster)
 ```
-#### 2. Sampling community compostions from the simulated dynamics
+#### 2. Sample Community Compositions from Simulated Dynamics
 ```
 ##create community matrix
 non_pertabate = map(dynamics, ~.x[[1]])
@@ -86,8 +98,8 @@ mat2 <- mat0
 mat2[mat2<=best_bin_th] <- 0
 mat2[mat2>0] <- 1
 ```
-#### 3. Evaluating species-specific influences of their presence on community dynamics
-We replicate this evaluation 3 times here to make this process feasible in local computer
+#### 3. Evaluate Species-Specific Influences on Community Dynamics
+To make this process feasible on a local computer, we replicate this evaluation three times.
 ```
 cluster = makeCluster(n.core)
 registerDoParallel(cluster)  
@@ -147,9 +159,8 @@ key_res <- data.frame(sp=1:Nsp,
                       mJC_diffstart=mJC2
 )
 ```
-#### 4. Energy landscape analysis
-We evaluatd species-specific influence on inferred assembly landscape topography
-This process is too heavy to compute in local computer. we show the version with small number of iteration in parameter fitting & randamization process.
+#### 4. Energy Landscape Analysis
+We evaluated species-specific influence on inferred assembly landscape topography. This process is too computationally intensive for a local computer; thus, we present a version with a reduced number of iterations in the parameter fitting and randomization process.
 ```
 seed <- 12
 n_itr <- 16
@@ -170,9 +181,8 @@ mdp <- foreach(sp=1:80, .packages = c("rELA","doParallel"))%dopar%{
 }
 
 stopCluster(cluster)
-saveRDS(mdp,sprintf("%s/ELA_SSprob_diff.rds",save.dir))
 ```
-Null model simulation were also performed using permutation of the focal species abundance.
+Null model simulations were also performed using permutations of the focal species' abundance.
 ```
 nrandamization <- 1000
 
@@ -200,8 +210,7 @@ for(sp in 1:80){
   cat("|\n")
 }
 ```
-
-#### 5. Comparing the proposed index and community-scale influence of each species
+#### 5. Comparing the Proposed Index and Community-Scale Influence of Each Species
 ```
 infulences <- merge(stdDtop,key_res,by="sp")
 cor.test(influences$z_dtopo,influences$mBC_diffstart,method="spearman")
@@ -210,6 +219,15 @@ plot(influences$z_dtopo,influences$mJC_diffstart)
 cor.test(influences$z_dtopo,influences$mJC_diffstart,method="spearman")
 plot(influences$z_dtopo,influences$mJC_diffstart)
 ```
+### Scripts
+**Analysis in the SuperComputer System**
+working_directory_in_supercomputer/Script/05_01_gLV_simulation_Nsp80_260201.R
+working_directory_in_supercomputer/Script/05_01_00_summarize_gLV_simulation_Nsp80_260201.R
+working_directory_in_supercomputer/Script/05_02_ELA_withRA_multistep_eachseed_Nsp80_260201.R
+working_directory_in_supercomputer/Script/05_03_randELA_withRA_4step_Nsp80_260201.R
+working_directory_in_supercomputer/Script/05_04_summarize_ELA_withRA_4step_Nsp80_260202.R
+working_directory_in_supercomputer/Script/05_05_Zconv_ELA_withRA_4step_Nsp80_260204.R
+working_directory_in_supercomputer/Script/05_06_merge_result_eachseed_Nsp80_260131.R
 
 ## Bioinfomatics
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
@@ -225,6 +243,11 @@ Script_in_local_computer/01_LOO_covrarefy.R
 ## Energy Landscape Analysis
 
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
+
+### Example
+#### 0. 
+
+
 
 ### Scripts
 **Energy landscape analysis in the SuperComputer System**
