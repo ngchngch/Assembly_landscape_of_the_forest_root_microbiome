@@ -147,7 +147,7 @@ key_res <- data.frame(sp=1:Nsp,
                       mJC_diffstart=mJC2
 )
 ```
-4. Energy landscape analysis
+#### 4. Energy landscape analysis
 We evaluatd species-specific influence on inferred assembly landscape topography
 This process is too heavy to compute in local computer. we show the version with small number of iteration in parameter fitting & randamization process.
 ```
@@ -201,7 +201,7 @@ for(sp in 1:80){
 }
 ```
 
-5. Comparing the proposed index and community-scale influence of each species
+#### 5. Comparing the proposed index and community-scale influence of each species
 ```
 infulences <- merge(stdDtop,key_res,by="sp")
 cor.test(influences$z_dtopo,influences$mBC_diffstart,method="spearman")
