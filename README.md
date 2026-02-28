@@ -1,6 +1,19 @@
 # Assembly Landscape of the Forest Root Microbiome
 
 # Workflows
+## Validation using generalized Lotka-Volterra simulations
+
+
+### Example
+`# Parameters
+total_sample <- 200
+rep =200
+nrep_eval <- 3
+time=100
+Nsp=c(80)
+connectance=0.2
+A_self = -1
+n.core <- 8`
 
 ## Bioinfomatics
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
