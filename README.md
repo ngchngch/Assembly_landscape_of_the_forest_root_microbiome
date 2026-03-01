@@ -232,7 +232,7 @@ working_directory_in_supercomputer/Script/05_04_summarize_ELA_withRA_4step_Nsp80
 working_directory_in_supercomputer/Script/05_05_Zconv_ELA_withRA_4step_Nsp80_260204.R
 working_directory_in_supercomputer/Script/05_06_merge_result_eachseed_Nsp80_260131.R
 
-## Bioinfomatics
+## Bioinfomatics of a root microbiome dataset
 We combined the root-tip fungal community datasets described in our previous study ([Noguchi and Toju *et al.*, 2024](https://doi.org/10.1002/ecm.1469)) with newly obtained prokaryotic data. The sequncing outputs of six Miseq runs were processed respectively (bioinfomatics pipelines were described in the corresponding "RunXX" directories and these outputs are in the directory "Base_data/Bioinfomatics/seqtab") and converted to a sample-OTU matrixusing the scripts in "Base_data/Bioinfomatics/Script".
 
 We then applied coverage-based rarefaction to the 1,270 root fungal and prokaryotic community data-sets.
@@ -243,7 +243,7 @@ Base_data/Bioinfomatics/Script/01_merge_and_decontm_2libararies.R
 **Rarefaction**
 Script_in_local_computer/01_LOO_covrarefy.R
 
-## Energy Landscape Analysis
+## Energy Landscape Analysis for a root microbiome dataset
 
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
 
@@ -275,7 +275,7 @@ source("packages/01_1_function.R")
 source("packages/functions_for_examples.R")
 ```
 
-### 1. Data processing for enegy landscape analysis
+### 1. Data processing
 Binarization
 ```
 ##data loading
