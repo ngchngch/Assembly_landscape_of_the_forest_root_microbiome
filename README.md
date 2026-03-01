@@ -248,7 +248,171 @@ Script_in_local_computer/01_LOO_covrarefy.R
  In the family-level taxonomic composition matrix, relative read counts for each family were binarized using the threshold. To make the subsequent energy landscape analysis computationally feasible, we prioritized families by their contribution to overall community structure as measured by PerMANOVA (*R²*). Among candidate family sets ranked by *R²*, we selected the set whose binarized pattern best matched the abundance-based community structure. Energy landscape analysis ([Suzuki *et al.*, 2021](https://doi.org/10.1002/ecm.1469)) was then performed using this selected family set together with host plant genera (encoded as dummy variables) as explanatory variables.
 
 ### Example
-#### 0. 
+We show the analysis of fungal community as an example.
+#### 0. loading package & original function
+```
+library(ggplot2)
+library(ggstar)
+library(rELA)
+library(vegan)
+library(foreach)
+library(doParallel)
+library(tidyr)
+library(compositions)
+library(parallel)
+library(foreach)
+library(vegan)
+library("Rcpp")
+library("RcppArmadillo")
+library("stringdist")
+library("doParallel")
+library('tidyverse')
+library('gtools')
+library('igraph')
+library("ggtext")
+library("ggforce")
+source("packages/01_1_function.R")
+source("packages/functions_for_examples.R")
+```
+
+### 1. Data processing for enegy landscape analysis
+Binarization
+```
+##data loading
+fb <- "Fungi"
+#meta-data
+info <- readRDS("examples/datasets/ELA_Fungi/comp_sample_info_plant2.rds")
+relf <- readRDS("examples/datasets/ELA_Fungi/Comm_mat.rds")
+sp_info <- readRDS("examples/datasets/ELA_Fungi/ELA_input_plant.rds")
+
+unident_th=0.5
+##binarization
+relf2 <- relf$filtered
+ocmat <- binarize_M2SD(relf2)
+```
+Taxa selection
+```
+relf_all <- relf$all_taxa/rowSums(relf$all_taxa)
+relf3 <- relf_all[which(relf_all[,"Unidentified"] < unident_th & rownames(relf_all) %in% rownames(ocmat)),]
+
+ocmat2 <- ocmat[rownames(relf3),]
+ocmat3 <- ocmat2[,which(colSums(ocmat2)>30 & colSums(ocmat2) < nrow(ocmat2)-30)]
+
+CTRL.t <- how(within = Within(type = "free"), 
+              plots = Plots(type = "none"),
+              blocks = paste0(info[rownames(ocmat3),c("plant")],
+                              info[rownames(ocmat3),c("site")]), 
+              nperm = 1000, # In original analysis, we set nperm = 10000
+              observed = TRUE)
+
+r2_each <- prioritize_adonis2(bin_mat=ocmat3,
+                              ab_mat=relf3,
+                              ex_var=info[rownames(ocmat3),c("plant","site")],
+                              nperm=CTRL.t,
+                              n.core=n.core,
+                              dist_method="bray")
+
+bin_ab_cor <- find_best_Spset(ab_mat=ocmat3,
+                              bin_mat=relf3,
+                              priority=r2_each$taxa[order(r2_each$R2,decreasing=TRUE)],
+                              min_nSp=20,
+                              max_nSp=50,
+                              n.core=n.core,
+                              method_bin_dist="jaccard",
+                              method_ab_dist="bray")
+
+bin_ab_cor$best <- FALSE
+
+bin_ab_cor[order(bin_ab_cor$tau,-bin_ab_cor$nSp,decreasing = TRUE)[1],"best"] <- TRUE
+
+best_bin_mat <- bin_mat[,r2_each$taxa[order(r2_each$R2,
+                                            decreasing=TRUE)[1:bin_ab_cor[which(bin_ab_cor$best),"nSp"]]]]
+
+saveRDS(best_bin_mat,"examples/datasets/ELA_Fungi/ELA_input_ocmat_Fungi.rds")
+
+g <- ggplot(bin_ab_cor,
+            aes(x=nSp,y=tau))+
+  geom_line()+
+  geom_point()+
+  geom_star(data=function(x){x[x$best,]},
+            starshape=1,fill="darkorange",size=4)+
+  labs(x="No. of species",y="Kendall's correlation coefficients")+
+  theme_bw()+
+  theme(aspect.ratio = 1,
+        strip.text = element_text(size=15),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size=13))
+g
+```
+### 2. Energy landscape analysis
+```
+om <- readRDS("examples/datasets/ELA_Fungi/ELA_input_ocmat_Fungi.rds") #best_bin_mat
+
+##Energy landscape analysis
+#ELA parameters
+qth <- 10^-5 
+SS.itr <- 150000
+n.core <- 8
+fb <-"Fungi"
+maj_th <- 0.01
+
+sa <- runSA(ocmat=as.matrix(om),
+            enmat = sp_info[rownames(om),-c(1,ncol(sp_info))],
+            qth=qth, rep=1280, threads=n.core)
+
+pltab <- unique(sp_info[rownames(ocmatf),-c(1,ncol(sp_info))])
+
+for(pl in 1:nrow(pltab)){#pl <- 4
+  if(sum(pltab[pl,]==1)){
+    plnam <- colnames(pltab)[which(pltab[pl,]==1)]
+  }else{
+    plnam <- colnames(sp_info)[ncol(sp_info)]
+  }
+  pocm <- om[which(rownames(om) %in% info[info$plant==plnam,"ID"]),]
+  
+  sa2p <- sa2params(sa,as.numeric(pltab[pl,]))
+  
+  hgestp <- sa2p[[4]]
+  jestp <- sa2p[[2]]
+
+  cluster = makeCluster(n.core)
+  registerDoParallel(cluster)
+  
+  samp_ss <- foreach(i=1:nrow(pocm),
+                     .packages = c("rELA","foreach"),.combine = "c")%dopar%{
+                       Bi(pocm[i,],
+                          hgestp,jestp)[[1]]
+                     }
+  
+  stopCluster(cluster)
+  
+  detected_ss <- rbind(detected_ss,
+                       cbind(plant=plnam,
+                             SS=ss[ss %in% names(table(samp_ss))[table(samp_ss)/length(samp_ss)>maj_th]],
+                             ncol=ncol(pocm)))
+}
+
+  maj_s <- unique(detected_ss[,"SS"])
+  
+  sscf <- t(sapply(maj_s,id2bin,ncol(om)))
+  colnames(sscf) <- colnames(om)
+  rownames(sscf) <- maj_s
+  #SS taxa binary heatmap
+  sscf2 <- unique(sscf[,colSums(sscf)>0])
+  
+  #disconnectivity graphs
+  for(pl in 1:nrow(pltab)){#pl <- 4
+    pdf(sprintf("%s/DG_%s_%s.pdf",dir,plnam,fb),
+        width=6,height=4)
+    showDG_mod(ela[[pl]],om,SS_colmat= as.data.frame(matrix(SStab[ss_pl,],ncol=3,
+                                                                dimnames = list(ss_pl,c("SS","rename_SS","color")))),
+               label=sprintf("%s",plnam),
+               na.color="black",
+               minor.color = "gray50",
+               annot_adj=c(0.5, 2.00))
+    dev.off()
+  }
+```
 
 
 
