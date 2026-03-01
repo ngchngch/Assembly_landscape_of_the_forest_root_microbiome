@@ -58,7 +58,7 @@ dynamics = foreach(n=1:nrow(set),
                      r_set <- r
                      
                      mat = gen_dyn(time=time, dt=1000,
-                                   A=A, r=r_set, N0=runif(N), type="gLV") #ode(y = N0(N), times = seq(1,500), func = lv_fun, parms = list(A=A, r=runif(N)))[,-1]
+                                   A=A, r=r_set, N0=runif(N), type="gLV")
                      
                      return( list(dynamics=mat) )
                      
