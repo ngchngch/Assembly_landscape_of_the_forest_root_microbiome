@@ -209,7 +209,7 @@ for(sp in 1:80){
   z_dtopo <- (mdp[mdp$ra=="perc50","d_land"]-mean(mdpr_all[mdpr_all$ra=="perc50","d_land"]))/sd(mdpr_all[mdpr_all$ra=="perc50","d_land"])
   p_dtopo <- sum(mdpr_all[mdpr_all$ra=="perc50","d_land"]>=mdp[mdp$ra=="perc50","d_land"])/nrandamization
   
-  stdDtop <- rbind(stdDtop,data.frame(sp=sp, z_dtopo=z_dtopo, p_dtopo=p_dtopo))
+  stdDtop <- rbind(stdDtop,data.frame(sp=sp, z_delta_topography=z_dtopo, p_delta_topography=p_dtopo))
   cat("|\n")
 }
 ```
@@ -433,6 +433,215 @@ Starting from the original data matrix with OTUs annotated as the focal genus re
 
 We then performed energy landscape analysis including host plant genera (dummy variables) and the CLR-transformed relative abundance of the focal genus as external variables. "Keystoneness" indices were computed by comparing energy landscapes inferred under two conditions: (1) without the focal genus and (2) with the focal genus fixed at representative abundances (25%, 50%, and 75% quantiles of its observed relative abundance), using community assembly simulations.
 
+### Example
+We show the evaluation for the fungal genus *Oidiodendron* on fungal community as an example.
+#### 0. loading package & original function
+
+library(parallel)
+library(foreach)
+library(vegan)
+library("Rcpp")
+library("RcppArmadillo")
+library("doParallel")
+library('tidyverse')
+library('gtools')
+library('igraph')
+library('RColorBrewer')
+library("stringdist")
+library("rELA")
+Rcpp::sourceCpp("packages/ELA_functions_v060.cpp")
+source("packages/functions_for_examples.R")
+
+abmat <- tb_g[["Fungi"]]
+ramat <- tb_gns[["Fungi"]]
+which_pres <- Bin_2sd(ramat[,colSums(ramat>0)>30]);dimnames(which_pres) <- dimnames(ramat[,colSums(ramat>0)>30])
+
+f <- Taxa.mat(df$Fungi,tx_f,taxa)
+f1 <- f/rowSums(f)
+f1 <- f1[which(rownames(f1) %in% rownames(ocmat$Fungi)),
+        which(colnames(f1) %in% colnames(ocmat$Fungi))]
+f2 <- Bin_2sd(f1);dimnames(f2) <- dimnames(f1)
+
+#### 1. Energy landscape analysis for community without *Oidiodendron*
+```
+#ELA parameters
+qth <- 10^-5 
+SS.itr <- 20000
+
+statef <- foreach(i=1:SS.itr,.combine="rbind")%do%{
+  st <- runif(ncol(ocmat$Fungi), 0, 2) |> as.integer()
+}
+rownames(statef) <- sprintf("Start_%05d",1:SS.itr)
+
+ocmatf <- f2[,which(colSums(f2)>30)]
+
+enmatf <- cbind(RA=scale(abmat[rownames(ocmatf),nam]),
+                sp_info[rownames(ocmatf),-c(1,ncol(sp_info))])
+
+sa <- runSA(ocmat=as.matrix(ocmatf),enmat = enmatf,
+            qth=qth, rep=16, threads=n.core) # set small number of iterations (rep) for local computer
+
+#make input start sets
+hg <- sa2params(sa)[[4]]
+state <- foreach(i=1:SS.itr,.combine="rbind")%do%{
+  st <- runif(length(hg), 0, 2) |> as.integer()
+}
+rownames(state) <- sprintf("Start_%05d",1:SS.itr)
+```
+#### 2.Evaluate community-scale influences
+```
+cat("processing(")
+cat(nrow(unique(sp_info[,-1])))
+cat(") |")
+
+for(pl in 1:nrow(unique(sp_info[,-1]))){#pl <-6
+  cat("=")
+  plmat <- unique(sp_info[,-c(1,ncol(sp_info))])[pl,]
+  
+  if(sum(plmat[1,]==1)==1){
+    pl_nam <- colnames(plmat)[which(plmat[1,]==1)]
+  }else{
+    if(all(plmat[1,]==0)){
+      pl_nam <-colnames(sp_info)[ncol(sp_info)]
+    }
+  }
+  
+  pnam[pl] <- pl_nam
+  psamp <- info[info$plant == pl_nam,"ID"]
+  ra <- enmatf[which(rownames(enmatf) %in% psamp),"RA"]
+  ra_noclr <- ramat[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+                    nam]
+  wpres <- which_pres[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+                      nam]
+  
+  ra_perc <- quantile(ra[wpres==1],c(0.25,0.5,0.75))
+  ran_perc <- quantile(ra_noclr[wpres==1],c(0.25,0.5,0.75))
+  
+  sprop[[pl]] <- SSchange(state=state,
+                          sa=sa,
+                          steps=3,
+                          RA_label=c("perc25","median","perc75"),
+                          env_cat=plmat,reporting = FALSE,
+                          start=mean(ra[wpres==0]),
+                          range=c(ra_perc[1],ra_perc[2],ra_perc[3]),
+                          eq_steps = FALSE,
+                          SS.itr=SS.itr,threads=n.core)
+  
+  md_sprop <- rbind(md_sprop,cbind(plant=pl_nam,ab=c(ran_perc[1],
+                                                     ran_perc[2],
+                                                     ran_perc[3]),
+                                   sprop[[pl]][["result"]]))
+    cat("|\n")
+}
+#results
+mdp <- cbind(Taxa=nam,md_sprop)
+```
+Null model simulations were also performed using host plant-restricted permutations of the focal species' abundance.
+```
+
+nrandamization <- 1000
+rsprop <- list(NULL)
+rpnam <-c()
+rmd_sprop <- NULL
+
+for(rand in 1:nrandamization){
+  rab <- blockSample(cbind(abmat[rownames(ocmatf),],
+                           ramat[rownames(ocmatf),],
+                           which_pres[rownames(ocmatf),]),
+                     info[rownames(ocmatf),"plant"],
+                     rownames(ocmatf))
+  
+  
+  rabmat <- rab$matrix[,1:ncol(abmat)]
+  
+  rramat <- rab$matrix[,(ncol(abmat)+1):(ncol(abmat)+ncol(ramat))]
+  rwhich_pres <- rab$matrix[,(ncol(abmat)+ncol(ramat)+1):ncol(rab$matrix)]
+  
+  enmatf <- cbind(RA=scale(rabmat[rownames(ocmatf),nam]),
+                  sp_info[rownames(ocmatf),-c(1,ncol(sp_info))])
+  
+  
+  sa <- runSA(ocmat=as.matrix(ocmatf),enmat = enmatf,
+              qth=qth, rep=16, threads=n.core)
+  
+  hg <- sa2params(sa)[[4]]
+  state <- statef[,sample(length(hg))]
+  for(pl in 1:nrow(unique(sp_info[,-1]))){#pl <-3
+    cat("=")
+    plmat <- unique(sp_info[,-c(1,ncol(sp_info))])[pl,]
+    
+    if(sum(plmat[1,]==1)==1){
+      pl_nam <- colnames(plmat)[which(plmat[1,]==1)]
+    }else{
+      if(all(plmat[1,]==0)){
+        pl_nam <-colnames(sp_info)[ncol(sp_info)]
+      }
+    }
+    
+    rpnam[pl] <- pl_nam
+    
+    psamp <- info[info$plant == pl_nam,"ID"]
+    ra <- enmatf[which(rownames(enmatf) %in% psamp),"RA"]
+    ra_noclr <- rramat[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+                       nam]
+    wpres <- rwhich_pres[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+                         nam]
+    
+    ra_perc <- quantile(ra[wpres==1],c(0.25,0.5,0.75))
+    ran_perc <- quantile(ra_noclr[wpres==1],c(0.25,0.5,0.75))
+    
+    rsprop[[pl]] <- SSchange(state=state,
+                            sa=sa,
+                            steps=3,
+                            RA_label=c("perc25","median","perc75"),
+                            env_cat=plmat,reporting = FALSE,
+                            start=mean(ra[wpres==0]),
+                            range=c(ra_perc[1],ra_perc[2],ra_perc[3]),
+                            eq_steps = FALSE,
+                            SS.itr=SS.itr,threads=n.core)
+    rmd_sprop <- rbind(md_sprop,cbind(plant=pl_nam,ab=c(ran_perc[1],
+                                                        ran_perc[2],
+                                                        ran_perc[3]),
+                                      rsprop[[pl]][["result"]]))
+  }  
+}
+```
+```
+m <- md_sprop
+r <- rmd_sprop
+stdDtop <- NULL
+for(i in 1:length(pl_nam)){
+  z_dtopo <- (m[m$ra=="perc50"&m$plant==pl_nam[i],"d_land"]-mean(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_land"]))/sd(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_land"])
+  z_deven <- (m[m$ra=="perc50"&m$plant==pl_nam[i],"d_even"]-mean(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_even"]))/sd(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_even"])
+  p_dtopo <- sum(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_land"]>=m[m$ra=="perc50"&m$plant==pl_nam[i],"d_land"])/nrandamization
+  p_deven <- ifelse(z_deven>0,
+                    sum(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_even"]>=m[m$ra=="perc50"&m$plant==pl_nam[i],"d_even"])/nrandamization,
+                    sum(r[r$ra=="perc50"&r$plant==pl_nam[i],"d_even"]<=m[m$ra=="perc50"&m$plant==pl_nam[i],"d_even"])/nrandamization)
+  stdDtop <- rbind(stdDtop,data.frame(plant=pl_nam[i],
+                                      z_delta_topography=z_dtopo,
+                                      z_delta_evenness=z_deven,
+                                      p_delta_topography=p_dtopo,
+                                      p_delta_evenness=p_deven)
+}
+
+print(stdDtop)
+```
+#read data
+## same input as energy landscape analysis
+info <- readRDS("examples/datasets/ELA_Fungi/comp_sample_info_plant2.rds")
+relf <- readRDS("examples/datasets/ELA_Fungi/Comm_mat.rds")
+sp_info <- readRDS("examples/datasets/ELA_Fungi/ELA_input_plant.rds")
+ocmat <- readRDS("examples/datasets/ELA_Fungi/ELA_input_ocmat_Fungi.rds") #best_bin_mat
+  
+## Abundances of genera
+tb_gns <- readRDS("examples/datasets/ELAbased_keystone_exploration/NoCLR_ExpVar_clrRA_target_taxa.rds")
+tb_g <- readRDS("examples/datasets/ELAbased_keystone_exploration/ExpVar_clrRA_target_taxa.rds")
+
+df <- readRDS("examples/datasets/ELAbased_keystone_exploration/matrix_list_Oidiodendron.rds")
+####
+abmat <- tb_g[["Fungi"]]
+ramat <- tb_gns[["Fungi"]]
+```
 ### Script
 **Community assembly simulations**
 working_directory_in_supercomputer/Script/03_01_ELA_withRA_4step.R
