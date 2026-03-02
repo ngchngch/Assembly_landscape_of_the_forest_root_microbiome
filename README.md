@@ -23,7 +23,7 @@ library(vegan)
 library(cluster)
 
 # Load custom functions for the analysis
-source("packages/functions_for_examples.R")
+source("examples/functions/functions_for_examples.R")
 
 ```
 #### 1. Generating community dynamics comprasing 80 species
@@ -269,8 +269,8 @@ library("ggtext")
 library("ggforce")
 
 # Load custom functions
-source("packages/01_1_function.R")
-source("packages/functions_for_examples.R")
+source("examples/functions/01_1_function.R")
+source("examples/functions/functions_for_examples.R")
 
 ```
 
@@ -446,9 +446,9 @@ library('RColorBrewer')
 library("stringdist")
 library("rELA")
 
-source("packages/functions_for_examples.R")
+source("examples/functions/functions_for_examples.R")
 # Source custom C++ and R functions
-Rcpp::sourceCpp("packages/ELA_functions_v060.cpp")
+Rcpp::sourceCpp("examples/functions/ELA_functions_v060.cpp")
 ```
 Input Data Preparation
 ```
