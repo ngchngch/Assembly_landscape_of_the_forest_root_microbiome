@@ -31,6 +31,9 @@ library(cluster)
 # Load custom functions for the analysis
 source("examples/functions/functions_for_examples.R")
 Rcpp::sourceCpp("examples/functions/ELA_functions_v060.cpp")
+
+workflow_path="examples/WORKFLOW"
+dir.create(workflow_path, showWarnings = FALSE)
 ```
 
 #### 1. Generating community dynamics comprasing 80 species
@@ -81,11 +84,14 @@ dynamics <- foreach(
   } |> set_names(apply(set, 1, paste, collapse = "_"))
 
 stopCluster(cluster)
+
+saveRDS(dynamics, sprintf("%s/01_simulation.rds", workflow_path))
 ```
 
 #### 2. Sample Community Compositions from Simulated Dynamics
 ```{r}
 # Create community matrix from simulated dynamics
+dynamics = readRDS(sprintf("%s/01_simulation.rds", workflow_path))
 non_pertabate <- map(dynamics, ~ .x[[1]])
 
 sim_set <- matrix(unlist(strsplit(names(non_pertabate), "_")), ncol = 3, byrow = TRUE)
@@ -119,11 +125,14 @@ mat2 <- mat0
 mat2[mat2 <= best_bin_th] <- 0
 mat2[mat2 > 0] <- 1
 
+saveRDS(mat0, sprintf("%s/02_abundance_data.rds", workflow_path))
+saveRDS(mat2, sprintf("%s/02_PA_data.rds", workflow_path))
 ```
 
 #### 3. Evaluate Species-Specific Influences on Community Dynamics
 To make this process feasible on a local computer, we replicate this evaluation three times.
 ```{r}
+
 cluster <- makeCluster(n.core)
 registerDoParallel(cluster)  
 
@@ -159,7 +168,11 @@ kness <- foreach(
 }
 
 stopCluster(cluster)
+saveRDS(kness, sprintf("%s/03_keystonness_simulated.rds", workflow_path))
 
+```
+Calculation of keystonness
+```{r}
 keystonness <- map_df(kness, ~ .x[[1]])
 
 mBC2 <- foreach(i = 1:Nsp, .combine = "c") %do% {
@@ -173,10 +186,15 @@ mJC2 <- foreach(i = 1:Nsp, .combine = "c") %do% {
 key_res <- data.frame(sp = 1:Nsp,
                       mBC_diffstart = mBC2,
                       mJC_diffstart = mJC2)
+
+
 ```
 #### 4. Energy Landscape Analysis
 We evaluated species-specific influence on inferred assembly landscape topography. This process is too computationally intensive for a local computer; thus, we present a version with a reduced number of iterations in the parameter fitting and randomization process.
 ```{r}
+mat0 = readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
+mat2 = readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
+
 seed <- 12
 n_itr <- 16
 set.seed(seed)
