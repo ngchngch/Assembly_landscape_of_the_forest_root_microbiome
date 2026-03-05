@@ -707,8 +707,8 @@ for (rand in 1:nrandamization) {
     ra <- enmatf[which(rownames(enmatf) %in% psamp), "RA"]
     ra_noclr <- rramat[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
                         "Oidiodendron"]
-    wpres <- rwhich_pres[rownames(enmatf)[which(rownames(enmatf) %in% psamp),
-                        "Oidiodendron"]
+    wpres <- rwhich_pres[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+                         "Oidiodendron"]
     
     ra_perc <- quantile(ra[wpres == 1], c(0.25, 0.5, 0.75))
     ran_perc <- quantile(ra_noclr[wpres == 1], c(0.25, 0.5, 0.75))
