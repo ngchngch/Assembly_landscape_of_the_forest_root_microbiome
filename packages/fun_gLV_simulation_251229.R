@@ -17,7 +17,7 @@ makeA = function(N=100, connectance=0.3, power=1, mu=0, sigma=0.1, output_g=FALS
   
   A = as_adjacency_matrix(g)
   link_posi = (A!=0)
-  A[which(link_posi)] = rnorm(sum(link_posi), mu, sigma)#*rlnorm(sum(link_posi), 0, 1)
+  A[which(link_posi)] = rnorm(sum(link_posi), mu, sigma)*rlnorm(sum(link_posi), 0, 1)
   
   if(output_g) return(g)
   return(as.matrix(A))
