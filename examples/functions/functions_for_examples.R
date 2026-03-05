@@ -100,7 +100,7 @@ plt_dynamics = function(mat, title=""){
 
 #####
 
-SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
+SSchange <- function(state,sa,env_grad, env_cat=NULL,steps=4,eq_steps=TRUE,
                      start=NA,
                      RA_label=NA,
                      range=NA,SS.itr=20000,threads=1,reporting=TRUE){
@@ -148,7 +148,7 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
     ssprop <- foreach(i = 1:length(de),.packages = c("rELA","tidyr","doParallel","vegan"),
                       .combine="c")%do%{
                         #i <- 2
-                        if(!is.na(env_cat[1])){
+                        if(!is.null(env_cat)){
                           ee <- c(de[i],as.numeric(env_cat))  
                         }else{
                           ee <- de[i]
@@ -212,7 +212,7 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
       d_land[i-1] <- sum(ssp_d)
     }
     
-    res <- spread(sdf,key=ssid,value=prop)
+    res <- pivot_wider(sdf, names_from=ssid, values_from=prop)
     
     res[is.na(res)] <- 0
     

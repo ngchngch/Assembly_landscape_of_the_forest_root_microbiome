@@ -19,12 +19,10 @@ Initially, we evaluated the performance of the proposed framework using generali
 ```{r}
 library(rELA) #install.packages("packages/rELA.v0.60.tar.gz", type="source")
 
-library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(doParallel)
 library(igraph)
-library(deSolve)
 library(vegan)
 library(cluster)
 
@@ -49,6 +47,9 @@ Nsp <- c(80)  # Number of species
 connectance <- 0.2  # Connectance in the network
 A_self <- -1  # Self-interaction parameter
 
+set <- expand.grid(Nsp, connectance, 1:rep) |>
+  set_names(c("N", "C", "rep")) |>
+  as.matrix()
 ```
 
 ##### Read parameters of Model 1
@@ -59,9 +60,6 @@ r <- readRDS("examples/datasets/gLV_simulation/rparameter_seed0.2_Nsp80.rds")[[1
 
 ##### Run the simulation
 ```{r}
-set <- expand.grid(Nsp, connectance, 1:rep) |>
-  set_names(c("N", "C", "rep")) |>
-  as.matrix()
 
 cluster <- makeCluster(n.core)
 registerDoParallel(cluster)
@@ -173,6 +171,8 @@ saveRDS(kness, sprintf("%s/03_keystonness_simulated.rds", workflow_path))
 ```
 Calculation of keystonness
 ```{r}
+kness = readRDS(sprintf("%s/03_keystonness_simulated.rds", workflow_path))
+
 keystonness <- map_df(kness, ~ .x[[1]])
 
 mBC2 <- foreach(i = 1:Nsp, .combine = "c") %do% {
@@ -192,40 +192,40 @@ key_res <- data.frame(sp = 1:Nsp,
 #### 4. Energy Landscape Analysis
 We evaluated species-specific influence on inferred assembly landscape topography. This process is too computationally intensive for a local computer; thus, we present a version with a reduced number of iterations in the parameter fitting and randomization process.
 ```{r}
-mat0 = readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
+mat0 = readRDS(sprintf("%s/02_abundance_data.rds", workflow_path))
 mat2 = readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
 
 seed <- 12
 n_itr <- 16
 set.seed(seed)
 
-cluster <- makeCluster(n.core)
-registerDoParallel(cluster)
-
-mdp <- foreach(sp = 1:80, .packages = c("rELA", "doParallel", "tidyverse")) %dopar% {
+mdp <- foreach(sp = 1:5, .packages = c("rELA", "doParallel", "tidyverse"), .combine = "rbind") %do% {
+  print(sp)
   bin0 <- as.matrix(mat2[, -sp])
   bin <- bin0[, colMeans(bin0) > 0.1 & colMeans(bin0) < 0.9]
   res <- Quant_landshift(
     bin = bin, # Binary community matrix (samples x species)
     abundance_focal = mat0[, sp], # Abundance of the focal species
-    qt_seq = c(0.5), # Abundance quantiles to evaluate
+    qt_seq = c(0.5, 0.7), # Abundance quantiles to evaluate
     itr_fit = n_itr, qth = 10^-5, SS.itr = 150000
   ) # ELA parameters
   return(res)
 }
 
-stopCluster(cluster)
+saveRDS(mdp, sprintf("%s/04_ela_simulated.rds", workflow_path))
+
 ```
 
 Null model simulations were also performed using permutations of the focal species' abundance.
 ```{r}
-nrandamization <- 1000
+nrandamization <- 5
 
+mdp <- readRDS(sprintf("%s/04_ela_simulated.rds", workflow_path))
 stdDtop <- NULL
-for (sp in 1:80) {
+for (sp in 1:5) {
   cat(sprintf("%s\n", sp))
 
-  mdp_rand <- foreach(rand = 1:nrandamization, .packages = c("rELA", "doParallel", "tidyverse")) %dopar% {
+  mdp_rand <- foreach(rand = 1:nrandamization, .packages = c("rELA", "doParallel", "tidyverse")) %do% {
     bin0 <- as.matrix(mat2[, -sp])
     bin <- bin0[, colMeans(bin0) > 0.1 & colMeans(bin0) < 0.9]
     res <- Quant_landshift(
@@ -245,16 +245,19 @@ for (sp in 1:80) {
   stdDtop <- rbind(stdDtop, data.frame(sp = sp, z_delta_topography = z_dtopo, p_delta_topography = p_dtopo))
   cat("|\n")
 }
+
+saveRDS(stdDtop, sprintf("%s/04_ela_null_model_simulation.rds", workflow_path))
+
 ```
 
 #### 5. Comparing the Proposed Index and Community-Scale Influence of Each Species
 ```{r}
 influences <- merge(stdDtop, key_res, by = "sp")
-cor.test(influences$z_dtopo, influences$mBC_diffstart, method = "spearman")
-plot(influences$z_dtopo, influences$mJC_diffstart)
+cor.test(influences$z_delta_topography, influences$mBC_diffstart, method = "spearman")
+plot(influences$z_delta_topography, influences$mJC_diffstart)
 
-cor.test(influences$z_dtopo, influences$mJC_diffstart, method = "spearman")
-plot(influences$z_dtopo, influences$mJC_diffstart)
+cor.test(influences$z_delta_topography, influences$mJC_diffstart, method = "spearman")
+plot(influences$z_delta_topography, influences$mJC_diffstart)
 ```
 
 ### Scripts
@@ -288,7 +291,6 @@ We show the analysis of fungal community as an example.
 #### 0. loading package & original function
 ```{r}
 library(ggplot2)
-library(ggstar)
 library(rELA)
 library(vegan)
 library(foreach)
@@ -305,10 +307,11 @@ library("gtools")
 library("igraph")
 library("ggtext")
 library("ggforce")
+library(ggstar)
 
 # Load custom functions
 source("packages/01_1_function.R")
-source("packages/functions_for_examples.R")
+source("examples/functions/functions_for_examples.R")
 
 ```
 
@@ -317,6 +320,7 @@ Binarization
 ```{r}
 # Data loading
 fb <- "Fungi"
+
 # Meta-data
 info <- readRDS("examples/datasets/ELA_Fungi/comp_sample_info_plant2.rds")
 relf <- readRDS("examples/datasets/ELA_Fungi/Comm_mat.rds")
@@ -343,13 +347,13 @@ CTRL.t <- how(
     info[rownames(ocmat3), c("plant")],
     info[rownames(ocmat3), c("site")]
   ),
-  nperm = 1000, # In original analysis, we set nperm = 10000
+  nperm = 10, # In original analysis, we set nperm = 10000
   observed = TRUE
 )
 
 r2_each <- prioritize_adonis2(
   bin_mat = ocmat3,
-  ab_mat = relf3,
+  ab_mat = relf3[,colnames(ocmat3)],
   ex_var = info[rownames(ocmat3), c("plant", "site")],
   nperm = CTRL.t,
   n.core = n.core,
@@ -357,8 +361,8 @@ r2_each <- prioritize_adonis2(
 )
 
 bin_ab_cor <- find_best_Spset(
-  ab_mat = ocmat3,
-  bin_mat = relf3,
+  bin_mat = ocmat3,
+  ab_mat = relf3[,colnames(ocmat3)],
   priority = r2_each$taxa[order(r2_each$R2, decreasing = TRUE)],
   min_nSp = 20,
   max_nSp = 50,
@@ -370,7 +374,7 @@ bin_ab_cor <- find_best_Spset(
 bin_ab_cor$best <- FALSE
 bin_ab_cor[order(bin_ab_cor$tau, -bin_ab_cor$nSp, decreasing = TRUE)[1], "best"] <- TRUE
 
-best_bin_mat <- bin_mat[, r2_each$taxa[order(r2_each$R2, decreasing = TRUE)[1:bin_ab_cor[which(bin_ab_cor$best), "nSp"]]]]
+best_bin_mat <- ocmat3[, r2_each$taxa[order(r2_each$R2, decreasing = TRUE)[1:bin_ab_cor[which(bin_ab_cor$best), "nSp"]]]]
 
 saveRDS(best_bin_mat, "examples/datasets/ELA_Fungi/ELA_input_ocmat_Fungi.rds")
 
@@ -410,8 +414,8 @@ sa <- runSA(
   qth = qth, rep = 1280, threads = n.core
 )
 
-pltab <- unique(sp_info[rownames(ocmatf), -c(1, ncol(sp_info))])
-
+pltab <- unique(sp_info[rownames(om), -c(1, ncol(sp_info))])
+detected_ss=c()
 for (pl in 1:nrow(pltab)) { # pl <- 4
   if (sum(pltab[pl, ] == 1)) {
     plnam <- colnames(pltab)[which(pltab[pl, ] == 1)]
@@ -439,7 +443,7 @@ for (pl in 1:nrow(pltab)) { # pl <- 4
   }
 
   stopCluster(cluster)
-
+  ss=unique(samp_ss)
   detected_ss <- rbind(
     detected_ss,
     cbind(
