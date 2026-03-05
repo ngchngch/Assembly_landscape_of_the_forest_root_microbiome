@@ -100,7 +100,7 @@ plt_dynamics = function(mat, title=""){
 
 #####
 
-SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
+SSchange <- function(state,sa,env_grad, env_cat=NULL,steps=4,eq_steps=TRUE,
                      start=NA,
                      RA_label=NA,
                      range=NA,SS.itr=20000,threads=1,reporting=TRUE){
@@ -120,11 +120,15 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
   
   if(eq_steps){
     
-    if(is.na(range[1])){mi <- min(env_grad)}else{mi <- range[1]}
-    if(is.na(range[1])){ma <- max(env_grad)}else{ma <- range[2]}
-    
-    dm <- (ma - mi)/(steps - 1)
-    de <- seq(mi, ma, dm)
+    if(length(range)<2){
+      de=range
+    }else{
+      if(is.na(range[1])){mi <- min(env_grad)}else{mi <- range[1]}
+      if(is.na(range[1])){ma <- max(env_grad)}else{ma <- range[2]}
+      
+      dm <- (ma - mi)/(steps - 1)
+      de <- seq(mi, ma, dm) 
+    }
     
   }else{
     if(length(range)<steps){steps <- length(range)}
@@ -144,7 +148,7 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
     ssprop <- foreach(i = 1:length(de),.packages = c("rELA","tidyr","doParallel","vegan"),
                       .combine="c")%do%{
                         #i <- 2
-                        if(!is.na(env_cat[1])){
+                        if(!is.null(env_cat)){
                           ee <- c(de[i],as.numeric(env_cat))  
                         }else{
                           ee <- de[i]
@@ -208,7 +212,7 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
       d_land[i-1] <- sum(ssp_d)
     }
     
-    res <- spread(sdf,key=ssid,value=prop)
+    res <- pivot_wider(sdf, names_from=ssid, values_from=prop)
     
     res[is.na(res)] <- 0
     
@@ -236,19 +240,20 @@ SSchange <- function(state,sa,env_grad,env_cat=NA,steps=4,eq_steps=TRUE,
 }
 
 
-Quant_landshift <- function(bin,ex_var=NULL,abundance_focal = ab_mat[,sp],
+Quant_landshift <- function(bin, ex_var=NULL, abundance_focal = ab_mat[,sp],
                            qt_seq = c(0.25,0.5,0.75),
                             n.core=1,itr_fit=16,qth=10^-5,SS.itr=150000){
   enmat_ns <- abundance_focal
   
-    if(is.null(ex_var[1])){
+  if(is.null(ex_var[1])){
     enmatf <- matrix(scale(abundance_focal),ncol=1)
   }else{
     enmatf <- cbind(matrix(scale(abundance_focal),ncol=1),
                     ex_var)
   }
  
-  sa <- runSA(ocmat= bin,enmat=enmatf,
+  dimnames(bin) <- list(1:nrow(bin), paste0("sp",1:ncol(bin)))
+  sa <- runSA(ocmat = bin,enmat=enmatf,
               qth=qth, rep=itr_fit, threads=n.core)
   
   hg <- sa2params(sa)[[4]]
@@ -256,32 +261,33 @@ Quant_landshift <- function(bin,ex_var=NULL,abundance_focal = ab_mat[,sp],
     st <- runif(length(hg), 0, 2) |> as.integer()
   }
   rownames(state) <- sprintf("Start_%05d",1:SS.itr)
+  colnames(state) <- names(hg)
+    
+  ra_perc <- quantile(enmatf[,1],qt_seq)
+  ran_perc <- quantile(enmat_ns,qt_seq)
   
-    ra_perc <- quantile(enmatf[,1],qt_seq)
-    ran_perc <- quantile(enmat_ns,qt_seq)
-    
-    sprop <- SSchange(state=state,
-                      sa=sa,
-                      steps=length(qt_seq),
-                      RA_label=paste0("perc",qt_seq*100),
-                      env_cat=env_cat,
-                      reporting = FALSE,
-                      start=min(enmatf),
-                      range=ra_perc,
-                      eq_steps = FALSE,
-                      SS.itr=SS.itr,threads=n.core)
-    
-    md_sprop <- cbind(id=sp,ab=ran_perc,
-                      scale_ab=ra_perc,
-                      scale_ab0=c(min(enmatf),rep(NA,length(qt_seq)-1)),
-                      sd_ab=c(sd(enmat_ns),
+  sprop <- SSchange(state=state,
+                    sa=sa,
+                    steps=length(qt_seq),
+                    RA_label=paste0("perc",qt_seq*100),
+                    env_cat=ex_var,
+                    reporting = FALSE,
+                    start=min(enmatf),
+                    range=ra_perc,
+                    eq_steps = FALSE,
+                    SS.itr=SS.itr,threads=n.core)
+  
+  md_sprop <- cbind(id=sp,ab=ran_perc,
+                    scale_ab=ra_perc,
+                    scale_ab0=c(min(enmatf),rep(NA,length(qt_seq)-1)),
+                    sd_ab=c(sd(enmat_ns),
+                            rep(NA,length(qt_seq)-1)),
+                    mean_ab=c(mean(enmat_ns),
                               rep(NA,length(qt_seq)-1)),
-                      mean_ab=c(mean(enmat_ns),
-                                rep(NA,length(qt_seq)-1)),
-                      sprop[["result"]])
-    return(md_sprop)
-    
-  }
+                    sprop[["result"]])
+  return(md_sprop)
+  
+}
 
 ##############
 binarize_M2SD <- function(relf2=relf2){
