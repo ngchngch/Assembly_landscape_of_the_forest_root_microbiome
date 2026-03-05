@@ -374,6 +374,12 @@ for(pl in 1:nrow(pltab)){#pl <- 4
   hgestp <- sa2p[[4]]
   jestp <- sa2p[[2]]
 
+ela[[pl]] <- ELA(sa, env=as.numeric(pltab[pl,]),
+             SS.itr=SS.itr, FindingTip.itr=10000, # <- the number of steps for finding stable states and tipping points (basically no need to change)
+             threads=n.core, reporting=TRUE)
+
+ ss <- ela[[pl]][[1]]
+
   cluster = makeCluster(n.core)
   registerDoParallel(cluster)
   
