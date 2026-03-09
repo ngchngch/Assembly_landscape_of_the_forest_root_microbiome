@@ -31,6 +31,7 @@ length(s_nam)
 ##randamly select 200 samples
 fb <- "Fungi"
 
+set.seed(1234)
 pdf(sprintf("%s/rarecurve_%s.pdf",save.dir,fb),h=5,w=5)
 rarecurve(df[[fb]][sample(s_nam,200),],
           col=color,xlab="Read count",ylab="Number of OTUs",
@@ -100,7 +101,6 @@ grel2 <- gather(cbind(ID=rownames(dat2),
 ##################
 #--Genus
 #####################
-gcolor <- setdiff(color,c(colf,colp,colf_g,colp_g,col_genus[,2]))
 
 taxa <- "Genus"
 fb <- "Fungi"
@@ -257,6 +257,11 @@ g_p_g <- ggplot(grel4,
 
 g_p_g
 
+saveRDS(list(Fungi_Fam=grel1,
+            Fungi_Gen=grel3,
+            Prokaryotes_Fam=grel2,
+            Prokaryotes_Gen=grel4),
+        sprintf("%s/barplot_data.rds",save.dir))
 ####
 
 mg <- g_f_f+g_f_g+g_p_f+g_p_g+plot_layout(ncol=1,
@@ -278,6 +283,7 @@ colMeans(dat4/rowSums(dat4))
 #--sample number each host
 
 gt <- as.data.frame(table(info_sl[s_nam,"plant"]))
+saveRDS(gt,sprintf("%s/sample_number_host.rds",save.dir))
 g <- ggplot(gt[order(gt$Freq,decreasing = TRUE),],
             aes(x=reorder(sprintf("*%s*",Var1),-Freq),
                 y=Freq))+
@@ -292,3 +298,4 @@ g <- ggplot(gt[order(gt$Freq,decreasing = TRUE),],
 
 g
 ggsave(sprintf("%s/FigS3_barplot_sample_number.pdf",save.dir),g,h=8,w=8)
+

@@ -289,14 +289,14 @@ for(i in 1:length(list)){#i <-1
   pt <- list[i]
   df <- readRDS(pt)
   
-  f <- Taxa.mat(df$Fungi,tx_f,taxa);f <- f[which(rownames(f) %in% rownames(ocmat$Fungi)),
-                                           which(colnames(f) %in% colnames(ocmat$Fungi))]
-  f1 <- f/rowSums(f)
+  f <- Taxa.mat(df$Fungi,tx_f,taxa)
+  f1 <- f/rowSums(f);f1 <- f1[which(rownames(f1) %in% rownames(ocmat$Fungi)),
+                              which(colnames(f1) %in% colnames(ocmat$Fungi))]
   f2 <- Bin_2sd(f1);dimnames(f2) <- dimnames(f1)
   
-  b <- Taxa.mat(df$Bacteria,tx_b,taxa);b <- b[which(rownames(b) %in% rownames(ocmat$Prokaryota)),
-                                              which(colnames(b) %in% colnames(ocmat$Prokaryota))]
-  b1 <- b/rowSums(b)
+  b <- Taxa.mat(df$Bacteria,tx_b,taxa)
+  b1 <- b/rowSums(b);b1 <- b1[which(rownames(b1) %in% rownames(ocmat$Prokaryota)),
+                              which(colnames(b1) %in% colnames(ocmat$Prokaryota))]
   
   b2 <- Bin_2sd(b1);dimnames(b2) <- dimnames(b1)
   
