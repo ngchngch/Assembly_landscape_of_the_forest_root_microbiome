@@ -526,6 +526,8 @@ library("rELA")
 source("examples/functions/functions_for_examples.R")
 # Source custom C++ and R functions
 Rcpp::sourceCpp("examples/functions/ELA_functions_v060.cpp")
+
+n.core <- 8
 ```
 Input Data Preparation
 ```{r}
@@ -561,8 +563,8 @@ f1 <- f / rowSums(f)
 
 # Filter taxa that are present in the original community matrix
 f1 <- f1[
-  which(rownames(f1) %in% rownames(ocmat$Fungi)),
-  which(colnames(f1) %in% colnames(ocmat$Fungi))
+  which(rownames(f1) %in% rownames(ocmat)),
+  which(colnames(f1) %in% colnames(ocmat))
 ]
 
 # binarization of the filtered taxa matrix
@@ -578,7 +580,7 @@ SS.itr <- 20000 # Number of iterations for the simulated annealing
 
 # Generate initial states for the simulated annealing process
 statef <- foreach(i = 1:SS.itr, .combine = "rbind") %do% {
-  st <- runif(ncol(ocmat$Fungi), 0, 2) |> as.integer()
+  st <- runif(ncol(ocmat), 0, 2) |> as.integer()
 }
 rownames(statef) <- sprintf("Start_%05d", 1:SS.itr)
 
@@ -611,6 +613,7 @@ cat(nrow(unique(sp_info[, -1])))
 cat(") |")
 
 # Loop through each unique plant to assess its influence
+pnam <- sprop <- md_sprop <- c()
 for (pl in 1:nrow(unique(sp_info[, -1]))) { # Loop through each plant
   cat("=")
   plmat <- unique(sp_info[, -c(1, ncol(sp_info))])[pl, ]
@@ -663,15 +666,15 @@ for (pl in 1:nrow(unique(sp_info[, -1]))) { # Loop through each plant
     ),
     sprop[[pl]][["result"]]
   ))
-  cat("|\n")
 }
+cat("|\n")
 
 # Combine results into a data frame
 mdp <- cbind(Taxa = "Oidiodendron", md_sprop)
 ```
 We also performed null model simulations using host plant-restricted permutations of the focal species' abundance.
 ```{r}
-nrandamization <- 1000 # Number of randomizations
+nrandamization <- 10 # Number of randomizations
 rsprop <- list(NULL)
 rpnam <- c()
 rmd_sprop <- NULL
@@ -742,7 +745,7 @@ for (rand in 1:nrandamization) {
       state = state,
       sa = sa,
       steps = 3,
-      RA_label = c("perc25", "median", "perc75"),
+      RA_label = c("perc25", "perc50", "perc75"),
       env_cat = plmat, reporting = FALSE,
       start = mean(ra[wpres == 0]),
       range = c(ra_perc[1], ra_perc[2], ra_perc[3]),
