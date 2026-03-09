@@ -25,7 +25,7 @@ generalized Lotka-Volterra models.
 #### 0. Load Libraries and Original Functions
 
 ``` r
-library(rELA) #install.packages("packages/rELA.v0.60.tar.gz", type="source")
+library(rELA) # install.packages("packages/rELA.v0.60.tar.gz", type="source")
 
 library(dplyr)
 library(tidyverse)
@@ -38,7 +38,7 @@ library(cluster)
 source("examples/functions/functions_for_examples.R")
 Rcpp::sourceCpp("examples/functions/ELA_functions_v060.cpp")
 
-workflow_path="examples/WORKFLOW"
+workflow_path <- "examples/WORKFLOW"
 dir.create(workflow_path, showWarnings = FALSE)
 ```
 
@@ -51,10 +51,10 @@ rep <- 200
 nrep_eval <- 3
 n.core <- 8
 
-time <- 1000  # Total time for the simulation
-Nsp <- c(80)  # Number of species
-connectance <- 0.2  # Connectance in the network
-A_self <- -1  # Self-interaction parameter
+time <- 1000 # Total time for the simulation
+Nsp <- c(80) # Number of species
+connectance <- 0.2 # Connectance in the network
+A_self <- -1 # Self-interaction parameter
 
 set <- expand.grid(Nsp, connectance, 1:rep) |>
   set_names(c("N", "C", "rep")) |>
@@ -100,7 +100,7 @@ saveRDS(dynamics, sprintf("%s/01_simulation.rds", workflow_path))
 
 ``` r
 # Create community matrix from simulated dynamics
-dynamics = readRDS(sprintf("%s/01_simulation.rds", workflow_path))
+dynamics <- readRDS(sprintf("%s/01_simulation.rds", workflow_path))
 non_pertabate <- map(dynamics, ~ .x[[1]])
 
 sim_set <- matrix(unlist(strsplit(names(non_pertabate), "_")), ncol = 3, byrow = TRUE)
@@ -145,36 +145,41 @@ evaluation three times.
 
 ``` r
 cluster <- makeCluster(n.core)
-registerDoParallel(cluster)  
+registerDoParallel(cluster)
 
 kness <- foreach(
   n = 1:nrep_eval,
   .packages = c("igraph", "tidyverse", "deSolve", "doParallel")
 ) %dopar% {
-  
   diff <- NULL
   N <- set[n, 1]
-                  
+
   for (i in 1:N) {
     init <- c(runif(N - 1), 0.5)[order(c(c(1:N)[-i], i))]
-    com_woi <- gen_dyn(time = time, dt = 1000, A = A[-i, -i], r = r[-i],
-                       N0 = init[-i], type = "gLV")
-    com_wi <- gen_dyn(time, dt = 1000, A, r,
-                                     init, type = "gLV")[, -i]
-                    
-    abruptness_diffstart <- calc_aburptness(before = com_woi,
-                                                           after = com_wi,
-                                                           ab_th = best_bin_th)
-                    
+    com_woi <- gen_dyn(
+      time = time, dt = 1000, A = A[-i, -i], r = r[-i],
+      N0 = init[-i], type = "gLV"
+    )
+    com_wi <- gen_dyn(time,
+      dt = 1000, A, r,
+      init, type = "gLV"
+    )[, -i]
+
+    abruptness_diffstart <- calc_aburptness(
+      before = com_woi,
+      after = com_wi,
+      ab_th = best_bin_th
+    )
+
     names(abruptness_diffstart) <- paste0(names(abruptness_diffstart), "_diffstart")
-                    
+
     diff <- rbind(diff, c(set[n, ], id = i, abruptness_diffstart[1:2]))
   }
-                  
-  keystoneness <- 
+
+  keystoneness <-
     data.frame(diff, r = r) |>
     left_join(calc_centrality(A), by = "id")
-                  
+
   return(list(keystoneness = keystoneness))
 }
 
@@ -185,7 +190,7 @@ saveRDS(kness, sprintf("%s/03_keystonness_simulated.rds", workflow_path))
 Calculation of keystonness
 
 ``` r
-kness = readRDS(sprintf("%s/03_keystonness_simulated.rds", workflow_path))
+kness <- readRDS(sprintf("%s/03_keystonness_simulated.rds", workflow_path))
 
 keystonness <- map_df(kness, ~ .x[[1]])
 
@@ -197,9 +202,11 @@ mJC2 <- foreach(i = 1:Nsp, .combine = "c") %do% {
   return(mean(keystonness[keystonness$id == i, "Jaccard_diffstart"], na.rm = TRUE))
 }
 
-key_res <- data.frame(sp = 1:Nsp,
-                      mBC_diffstart = mBC2,
-                      mJC_diffstart = mJC2)
+key_res <- data.frame(
+  sp = 1:Nsp,
+  mBC_diffstart = mBC2,
+  mJC_diffstart = mJC2
+)
 ```
 
 #### 4. Energy Landscape Analysis
@@ -210,8 +217,8 @@ computer; thus, we present a version with a reduced number of iterations
 in the parameter fitting and randomization process.
 
 ``` r
-mat0 = readRDS(sprintf("%s/02_abundance_data.rds", workflow_path))
-mat2 = readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
+mat0 <- readRDS(sprintf("%s/02_abundance_data.rds", workflow_path))
+mat2 <- readRDS(sprintf("%s/02_PA_data.rds", workflow_path))
 
 seed <- 12
 n_itr <- 16
@@ -397,7 +404,7 @@ CTRL.t <- how(
 
 r2_each <- prioritize_adonis2(
   bin_mat = ocmat3,
-  ab_mat = relf3[,colnames(ocmat3)],
+  ab_mat = relf3[, colnames(ocmat3)],
   ex_var = info[rownames(ocmat3), c("plant", "site")],
   nperm = CTRL.t,
   n.core = n.core,
@@ -406,7 +413,7 @@ r2_each <- prioritize_adonis2(
 
 bin_ab_cor <- find_best_Spset(
   bin_mat = ocmat3,
-  ab_mat = relf3[,colnames(ocmat3)],
+  ab_mat = relf3[, colnames(ocmat3)],
   priority = r2_each$taxa[order(r2_each$R2, decreasing = TRUE)],
   min_nSp = 20,
   max_nSp = 50,
@@ -453,66 +460,81 @@ n.core <- 8
 fb <- "Fungi"
 maj_th <- 0.01
 
-sa <- runSA(ocmat=as.matrix(om),
-            enmat = sp_info[rownames(om),-c(1,ncol(sp_info))],
-            qth=qth, rep=1280, threads=n.core)
+sa <- runSA(
+  ocmat = as.matrix(om),
+  enmat = sp_info[rownames(om), -c(1, ncol(sp_info))],
+  qth = qth, rep = 1280, threads = n.core
+)
 
-pltab <- unique(sp_info[rownames(om),-c(1,ncol(sp_info))])
+pltab <- unique(sp_info[rownames(om), -c(1, ncol(sp_info))])
 
 ela <- detected_ss <- c()
-for(pl in 1:nrow(pltab)){#pl <- 4
-  if(sum(pltab[pl,]==1)){
-    plnam <- colnames(pltab)[which(pltab[pl,]==1)]
-  }else{
+for (pl in 1:nrow(pltab)) { # pl <- 4
+  if (sum(pltab[pl, ] == 1)) {
+    plnam <- colnames(pltab)[which(pltab[pl, ] == 1)]
+  } else {
     plnam <- colnames(sp_info)[ncol(sp_info)]
   }
-  pocm <- om[which(rownames(om) %in% info[info$plant==plnam,"ID"]),]
-  
-  sa2p <- sa2params(sa,as.numeric(pltab[pl,]))
-  
+  pocm <- om[which(rownames(om) %in% info[info$plant == plnam, "ID"]), ]
+
+  sa2p <- sa2params(sa, as.numeric(pltab[pl, ]))
+
   hgestp <- sa2p[[4]]
   jestp <- sa2p[[2]]
-  
-  ela[[pl]] <- ELA(sa, env=as.numeric(pltab[pl,]),
-                   SS.itr=SS.itr, FindingTip.itr=10000, # <- the number of steps for finding stable states and tipping points (basically no need to change)
-                   threads=n.core, reporting=TRUE)
-  
+
+  ela[[pl]] <- ELA(sa,
+    env = as.numeric(pltab[pl, ]),
+    SS.itr = SS.itr, FindingTip.itr = 10000, # <- the number of steps for finding stable states and tipping points (basically no need to change)
+    threads = n.core, reporting = TRUE
+  )
+
   ss <- ela[[pl]][[1]]
-  
-  cluster = makeCluster(n.core)
+
+  cluster <- makeCluster(n.core)
   registerDoParallel(cluster)
-  
-  samp_ss <- foreach(i=1:nrow(pocm),
-                     .packages = c("rELA","foreach"),.combine = "c")%dopar%{
-                       Bi(pocm[i,],
-                          hgestp,jestp)[[1]]
-                     }
-  
+
+  samp_ss <- foreach(
+    i = 1:nrow(pocm),
+    .packages = c("rELA", "foreach"), .combine = "c"
+  ) %dopar% {
+    Bi(
+      pocm[i, ],
+      hgestp, jestp
+    )[[1]]
+  }
+
   stopCluster(cluster)
-  
-  detected_ss <- rbind(detected_ss,
-                       cbind(plant=plnam,
-                             SS=ss[ss %in% names(table(samp_ss))[table(samp_ss)/length(samp_ss)>maj_th]],
-                             ncol=ncol(pocm)))
+
+  detected_ss <- rbind(
+    detected_ss,
+    cbind(
+      plant = plnam,
+      SS = ss[ss %in% names(table(samp_ss))[table(samp_ss) / length(samp_ss) > maj_th]],
+      ncol = ncol(pocm)
+    )
+  )
 }
 
-maj_s <- unique(detected_ss[,"SS"])
+maj_s <- unique(detected_ss[, "SS"])
 
-sscf <- t(sapply(maj_s,id2bin,ncol(om)))
+sscf <- t(sapply(maj_s, id2bin, ncol(om)))
 colnames(sscf) <- colnames(om)
 rownames(sscf) <- maj_s
-#SS taxa binary heatmap
-sscf2 <- unique(sscf[,colSums(sscf)>0])
+# SS taxa binary heatmap
+sscf2 <- unique(sscf[, colSums(sscf) > 0])
 
-#disconnectivity graphs
-for(pl in 1:nrow(pltab)){#pl <- 4
+# disconnectivity graphs
+for (pl in 1:nrow(pltab)) { # pl <- 4
   showDG_mod(ela[[pl]], om,
-             SS_colmat= as.data.frame(matrix(detected_ss[ss_pl,],ncol=3,
-                                                          dimnames = list(ss_pl,c("SS","rename_SS","color")))),
-             label=sprintf("%s",plnam),
-             na.color="black",
-             minor.color = "gray50",
-             annot_adj=c(0.5, 2.00))
+    SS_colmat = as.data.frame(matrix(detected_ss[ss_pl, ],
+      ncol = 3,
+      dimnames = list(ss_pl, c("SS", "rename_SS", "color"))
+    )),
+    label = sprintf("%s", plnam),
+    na.color = "black",
+    minor.color = "gray50",
+    annot_adj = c(0.5, 2.00)
+  )
 }
 ```
 
@@ -567,6 +589,8 @@ library("rELA")
 source("examples/functions/functions_for_examples.R")
 # Source custom C++ and R functions
 Rcpp::sourceCpp("examples/functions/ELA_functions_v060.cpp")
+
+n.core <- 8
 ```
 
 Input Data Preparation
@@ -577,6 +601,7 @@ info <- readRDS("examples/datasets/ELA_Fungi/comp_sample_info_plant2.rds")
 relf <- readRDS("examples/datasets/ELA_Fungi/Comm_mat.rds")
 sp_info <- readRDS("examples/datasets/ELA_Fungi/ELA_input_plant.rds")
 ocmat <- readRDS("examples/datasets/ELA_Fungi/ELA_input_ocmat_Fungi.rds") # Best binarized matrix
+tx_f <- readRDS("examples/datasets/ELA_Fungi/taxa_list_mod.rds")
 
 # Load abundance data for genera
 tb_gns <- readRDS("examples/datasets/ELAbased_keystone_exploration/NoCLR_ExpVar_clrRA_target_taxa.rds")
@@ -605,8 +630,8 @@ f1 <- f / rowSums(f)
 
 # Filter taxa that are present in the original community matrix
 f1 <- f1[
-  which(rownames(f1) %in% rownames(ocmat$Fungi)),
-  which(colnames(f1) %in% colnames(ocmat$Fungi))
+  which(rownames(f1) %in% rownames(ocmat)),
+  which(colnames(f1) %in% colnames(ocmat))
 ]
 
 # binarization of the filtered taxa matrix
@@ -626,7 +651,7 @@ SS.itr <- 20000 # Number of iterations for the simulated annealing
 
 # Generate initial states for the simulated annealing process
 statef <- foreach(i = 1:SS.itr, .combine = "rbind") %do% {
-  st <- runif(ncol(ocmat$Fungi), 0, 2) |> as.integer()
+  st <- runif(ncol(ocmat), 0, 2) |> as.integer()
 }
 rownames(statef) <- sprintf("Start_%05d", 1:SS.itr)
 
@@ -661,6 +686,7 @@ cat(nrow(unique(sp_info[, -1])))
 cat(") |")
 
 # Loop through each unique plant to assess its influence
+pnam <- sprop <- md_sprop <- c()
 for (pl in 1:nrow(unique(sp_info[, -1]))) { # Loop through each plant
   cat("=")
   plmat <- unique(sp_info[, -c(1, ncol(sp_info))])[pl, ]
@@ -713,8 +739,8 @@ for (pl in 1:nrow(unique(sp_info[, -1]))) { # Loop through each plant
     ),
     sprop[[pl]][["result"]]
   ))
-  cat("|\n")
 }
+cat("|\n")
 
 # Combine results into a data frame
 mdp <- cbind(Taxa = "Oidiodendron", md_sprop)
@@ -724,40 +750,48 @@ We also performed null model simulations using host plant-restricted
 permutations of the focal species’ abundance.
 
 ``` r
-nrandamization <- 1000  # Number of randomizations
+nrandamization <- 10 # Number of randomizations
 rsprop <- list(NULL)
 rpnam <- c()
 rmd_sprop <- NULL
 
 # Loop for randomization
 for (rand in 1:nrandamization) {
-  rab <- blockSample(cbind(abmat[rownames(ocmatf),],
-                           ramat[rownames(ocmatf),],
-                           which_pres[rownames(ocmatf),]),
-                     info[rownames(ocmatf), "plant"],
-                     rownames(ocmatf))
-  
+  rab <- blockSample(
+    cbind(
+      abmat[rownames(ocmatf), ],
+      ramat[rownames(ocmatf), ],
+      which_pres[rownames(ocmatf), ]
+    ),
+    info[rownames(ocmatf), "plant"],
+    rownames(ocmatf)
+  )
+
   rabmat <- rab$matrix[, 1:ncol(abmat)]
-  
+
   rramat <- rab$matrix[, (ncol(abmat) + 1):(ncol(abmat) + ncol(ramat))]
   rwhich_pres <- rab$matrix[, (ncol(abmat) + ncol(ramat) + 1):ncol(rab$matrix)]
-  
+
   # Prepare environmental matrix for the randomized data
-  enmatf <- cbind(RA = scale(rabmat[rownames(ocmatf), "Oidiodendron"]),
-                  sp_info[rownames(ocmatf), -c(1, ncol(sp_info))])
-  
+  enmatf <- cbind(
+    RA = scale(rabmat[rownames(ocmatf), "Oidiodendron"]),
+    sp_info[rownames(ocmatf), -c(1, ncol(sp_info))]
+  )
+
   # Run simulated annealing for the randomized matrix
-  sa <- runSA(ocmat = as.matrix(ocmatf), enmat = enmatf,
-              qth = qth, rep = 16, threads = n.core)
-  
+  sa <- runSA(
+    ocmat = as.matrix(ocmatf), enmat = enmatf,
+    qth = qth, rep = 16, threads = n.core
+  )
+
   hg <- sa2params(sa)[[4]]
-  state <- statef[, sample(length(hg))]  # Randomize the state
-  
+  state <- statef[, sample(length(hg))] # Randomize the state
+
   # Loop through each unique plant for evaluation
-  for (pl in 1:nrow(unique(sp_info[,-1]))) {
+  for (pl in 1:nrow(unique(sp_info[, -1]))) {
     cat("=")
-    plmat <- unique(sp_info[,-c(1, ncol(sp_info))])[pl,]
-    
+    plmat <- unique(sp_info[, -c(1, ncol(sp_info))])[pl, ]
+
     if (sum(plmat[1, ] == 1) == 1) {
       pl_nam <- colnames(plmat)[which(plmat[1, ] == 1)]
     } else {
@@ -765,34 +799,44 @@ for (rand in 1:nrandamization) {
         pl_nam <- colnames(sp_info)[ncol(sp_info)]
       }
     }
-    
+
     rpnam[pl] <- pl_nam
-    
+
     psamp <- info[info$plant == pl_nam, "ID"]
     ra <- enmatf[which(rownames(enmatf) %in% psamp), "RA"]
-    ra_noclr <- rramat[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
-                        "Oidiodendron"]
-    wpres <- rwhich_pres[rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
-                         "Oidiodendron"]
-    
+    ra_noclr <- rramat[
+      rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+      "Oidiodendron"
+    ]
+    wpres <- rwhich_pres[
+      rownames(enmatf)[which(rownames(enmatf) %in% psamp)],
+      "Oidiodendron"
+    ]
+
     ra_perc <- quantile(ra[wpres == 1], c(0.25, 0.5, 0.75))
     ran_perc <- quantile(ra_noclr[wpres == 1], c(0.25, 0.5, 0.75))
-    
+
     # Calculate species-specific influences for randomized data
-    rsprop[[pl]] <- SSchange(state = state,
-                             sa = sa,
-                             steps = 3,
-                             RA_label = c("perc25", "median", "perc75"),
-                             env_cat = plmat, reporting = FALSE,
-                             start = mean(ra[wpres == 0]),
-                             range = c(ra_perc[1], ra_perc[2], ra_perc[3]),
-                             eq_steps = FALSE,
-                             SS.itr = SS.itr, threads = n.core)
-    rmd_sprop <- rbind(md_sprop, cbind(plant = pl_nam, ab = c(ran_perc[1],
-                                                               ran_perc[2],
-                                                               ran_perc[3]),
-                                      rsprop[[pl]][["result"]]))
-  }  
+    rsprop[[pl]] <- SSchange(
+      state = state,
+      sa = sa,
+      steps = 3,
+      RA_label = c("perc25", "perc50", "perc75"),
+      env_cat = plmat, reporting = FALSE,
+      start = mean(ra[wpres == 0]),
+      range = c(ra_perc[1], ra_perc[2], ra_perc[3]),
+      eq_steps = FALSE,
+      SS.itr = SS.itr, threads = n.core
+    )
+    rmd_sprop <- rbind(md_sprop, cbind(
+      plant = pl_nam, ab = c(
+        ran_perc[1],
+        ran_perc[2],
+        ran_perc[3]
+      ),
+      rsprop[[pl]][["result"]]
+    ))
+  }
 }
 ```
 
@@ -806,28 +850,31 @@ stdDtop <- NULL
 
 # Calculate z-scores and p-values for each plant
 for (i in 1:length(pl_nam)) {
-  z_dtopo <- (m[m$ra == "perc50" & m$plant == pl_nam[i], "d_land"] - 
-               mean(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"])) / 
-               sd(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"])
-  
-  z_deven <- (m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"] - 
-               mean(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"])) / 
-               sd(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"])
-  
-  p_dtopo <- sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"] >= 
-                 m[m$ra == "perc50" & m$plant == pl_nam[i], "d_land"]) / nrandamization
-  
+  z_dtopo <- (m[m$ra == "perc50" & m$plant == pl_nam[i], "d_land"] -
+    mean(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"])) /
+    sd(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"])
+
+  z_deven <- (m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"] -
+    mean(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"])) /
+    sd(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"])
+
+  p_dtopo <- sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_land"] >=
+    m[m$ra == "perc50" & m$plant == pl_nam[i], "d_land"]) / nrandamization
+
   p_deven <- ifelse(z_deven > 0,
-                    sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"] >= 
-                        m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"]) / nrandamization,
-                    sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"] <= 
-                        m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"]) / nrandamization)
-  
-  stdDtop <- rbind(stdDtop, data.frame(plant = pl_nam[i],
-                                       z_delta_topography = z_dtopo,
-                                       z_delta_evenness = z_deven,
-                                       p_delta_topography = p_dtopo,
-                                       p_delta_evenness = p_deven))
+    sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"] >=
+      m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"]) / nrandamization,
+    sum(r[r$ra == "perc50" & r$plant == pl_nam[i], "d_even"] <=
+      m[m$ra == "perc50" & m$plant == pl_nam[i], "d_even"]) / nrandamization
+  )
+
+  stdDtop <- rbind(stdDtop, data.frame(
+    plant = pl_nam[i],
+    z_delta_topography = z_dtopo,
+    z_delta_evenness = z_deven,
+    p_delta_topography = p_dtopo,
+    p_delta_evenness = p_deven
+  ))
 }
 
 # Print the results of the standard deviations
