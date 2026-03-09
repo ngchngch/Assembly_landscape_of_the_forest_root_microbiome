@@ -42,7 +42,7 @@ rep <- 200
 nrep_eval <- 3
 n.core <- 8
 
-time <- 100  # Total time for the simulation
+time <- 1000  # Total time for the simulation
 Nsp <- c(80)  # Number of species
 connectance <- 0.2  # Connectance in the network
 A_self <- -1  # Self-interaction parameter
@@ -82,7 +82,7 @@ dynamics <- foreach(
   } |> set_names(apply(set, 1, paste, collapse = "_"))
 
 stopCluster(cluster)
-
+plt_dynamics(dynamics[[1]])
 saveRDS(dynamics, sprintf("%s/01_simulation.rds", workflow_path))
 ```
 
@@ -408,72 +408,66 @@ n.core <- 8
 fb <- "Fungi"
 maj_th <- 0.01
 
-sa <- runSA(
-  ocmat = as.matrix(om),
-  enmat = sp_info[rownames(om), -c(1, ncol(sp_info))],
-  qth = qth, rep = 1280, threads = n.core
-)
+sa <- runSA(ocmat=as.matrix(om),
+            enmat = sp_info[rownames(om),-c(1,ncol(sp_info))],
+            qth=qth, rep=1280, threads=n.core)
 
-pltab <- unique(sp_info[rownames(om), -c(1, ncol(sp_info))])
-detected_ss=c()
-for (pl in 1:nrow(pltab)) { # pl <- 4
-  if (sum(pltab[pl, ] == 1)) {
-    plnam <- colnames(pltab)[which(pltab[pl, ] == 1)]
-  } else {
+pltab <- unique(sp_info[rownames(om),-c(1,ncol(sp_info))])
+
+ela <- detected_ss <- c()
+for(pl in 1:nrow(pltab)){#pl <- 4
+  if(sum(pltab[pl,]==1)){
+    plnam <- colnames(pltab)[which(pltab[pl,]==1)]
+  }else{
     plnam <- colnames(sp_info)[ncol(sp_info)]
   }
-  pocm <- om[which(rownames(om) %in% info[info$plant == plnam, "ID"]), ]
-
-  sa2p <- sa2params(sa, as.numeric(pltab[pl, ]))
-
+  pocm <- om[which(rownames(om) %in% info[info$plant==plnam,"ID"]),]
+  
+  sa2p <- sa2params(sa,as.numeric(pltab[pl,]))
+  
   hgestp <- sa2p[[4]]
   jestp <- sa2p[[2]]
-
-  cluster <- makeCluster(n.core)
+  
+  ela[[pl]] <- ELA(sa, env=as.numeric(pltab[pl,]),
+                   SS.itr=SS.itr, FindingTip.itr=10000, # <- the number of steps for finding stable states and tipping points (basically no need to change)
+                   threads=n.core, reporting=TRUE)
+  
+  ss <- ela[[pl]][[1]]
+  
+  cluster = makeCluster(n.core)
   registerDoParallel(cluster)
-
-  samp_ss <- foreach(
-    i = 1:nrow(pocm),
-    .packages = c("rELA", "foreach"), .combine = "c"
-  ) %dopar% {
-    Bi(
-      pocm[i, ],
-      hgestp, jestp
-    )[[1]]
-  }
-
+  
+  samp_ss <- foreach(i=1:nrow(pocm),
+                     .packages = c("rELA","foreach"),.combine = "c")%dopar%{
+                       Bi(pocm[i,],
+                          hgestp,jestp)[[1]]
+                     }
+  
   stopCluster(cluster)
-  ss=unique(samp_ss)
-  detected_ss <- rbind(
-    detected_ss,
-    cbind(
-      plant = plnam,
-      SS = ss[ss %in% names(table(samp_ss))[table(samp_ss) / length(samp_ss) > maj_th]],
-      ncol = ncol(pocm)
-    )
-  )
+  
+  detected_ss <- rbind(detected_ss,
+                       cbind(plant=plnam,
+                             SS=ss[ss %in% names(table(samp_ss))[table(samp_ss)/length(samp_ss)>maj_th]],
+                             ncol=ncol(pocm)))
 }
 
-maj_s <- unique(detected_ss[, "SS"])
+maj_s <- unique(detected_ss[,"SS"])
 
-sscf <- t(sapply(maj_s, id2bin, ncol(om)))
+sscf <- t(sapply(maj_s,id2bin,ncol(om)))
 colnames(sscf) <- colnames(om)
 rownames(sscf) <- maj_s
-# SS taxa binary heatmap
-sscf2 <- unique(sscf[, colSums(sscf) > 0])
+#SS taxa binary heatmap
+sscf2 <- unique(sscf[,colSums(sscf)>0])
 
-# disconnectivity graphs
-for (pl in 1:nrow(pltab)) { # pl <- 4
+#disconnectivity graphs
+for(pl in 1:nrow(pltab)){#pl <- 4
   showDG_mod(ela[[pl]], om,
-    SS_colmat = as.data.frame(matrix(SStab[ss_pl, ],
-      ncol = 3,
-      dimnames = list(ss_pl, c("SS", "rename_SS", "color"))
-    )),
-    label = sprintf("%s", plnam),
-    na.color = "black",
-    minor.color = "gray50",
-    annot_adj = c(0.5, 2.00)
-  )
+             SS_colmat= as.data.frame(matrix(detected_ss[ss_pl,],ncol=3,
+                                                          dimnames = list(ss_pl,c("SS","rename_SS","color")))),
+             label=sprintf("%s",plnam),
+             na.color="black",
+             minor.color = "gray50",
+             annot_adj=c(0.5, 2.00))
 }
 ```
 
