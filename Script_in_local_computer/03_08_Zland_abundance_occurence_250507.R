@@ -1,10 +1,23 @@
 
 ###########################################
+
+##00_install_packages
+##01_01_covarage_based_rarefaction_all
+##01_02_Barplot 
+##02_01_ELA_threshold
+##02_02_ELA 
+##02_03_graphics_ELA
+##03_01_covarage_based_rarefaction_each
+##03_02_ELA_withRAgradient #now
+##03_03_graphics_ELA_withRAgradient
+##04_01_SSclustering
+##04_02_Change_eachSScluster_withRA
+##04_03_graphics_Change_eachSScluster
 ##########################################################################
+#install.packages("/Volumes/8TBHDD_NGCH/sugadaira_bacteria_2023/240801_SSchange_randamize/packages/rELA.v0.51.tar")
 
-
-
-source("packages/01_1_function.R")
+setwd("/Users/ngch/Desktop/Now_using/data/sugaFB_ELA/analysis_series_SpCom/02_ELA_241216")
+source("/Users/ngch/Desktop/Now_using/data/sugaFB_ELA/packages/01_1_function.R")
 set.seed(1234)
 
 library(renv)
@@ -18,12 +31,12 @@ library(ggrepel)
 #detectCores()
 n.core <- 8 # not threads!!
 
-dir_03_02_02 <- "Output/03_02_02_Zconv_fixP"
-dir_03_07 <- "Output/03_07_graphics_Zconv_landchanges_each_biplot_250312"
-ELA_prep_dir <- "Output_supercomputer/02_01_ELA_prep_abundance_threshold"
+dir_03_05  <- "03_02_02_Zconv_dland_fixP"
+dir_03_07 <- "03_07_graphics_Zconv_landchanges_each_biplot_250312"
+ELA_prep_dir <- "02_01_ELA_prep_abundance_threshold"
 
 #########################################################################
-save.dir <- "Output/03_08_Zland_abundance_occurence_250623"
+save.dir <- "03_08_Zland_abundance_occurence_250623"
 dir.create(save.dir)
 
 info <- readRDS(sprintf("%s/comp_sample_info_plant2.rds",ELA_prep_dir))
@@ -35,12 +48,12 @@ ocmat <- list(Fungi=readRDS(sprintf("%s/ocmat_remove_M2SD_Fungi_Family.rds",ELA_
 
 tx_f <- readRDS("../../Base_data/Fungi/taxa_list_mod.rds")
 tx_p <- as.data.frame(readRDS("../../Base_data/OTU_basedata_set/taxonomy_list_dada2.rds"))
-tx_m <- rbind(tx_f[,c("Order","Genus")],tx_b[,c("Order","Genus")])
+tx_m <- rbind(tx_f[,c("Order","Genus")],tx_p[,c("Order","Genus")])
 
 
 
-zval_f_org <- readRDS(sprintf("%s/zvalue_Fungi.rds",dir_03_02_02))
-zval_p_org <- readRDS(sprintf("%s/zvalue_Prokaryote.rds",dir_03_02_02))
+zval_f_org <- readRDS(sprintf("%s/zvalue_Fungi.rds",dir_03_05))
+zval_p_org <- readRDS(sprintf("%s/zvalue_Prokaryote.rds",dir_03_05))
 
 
 zval_f_org$target <- ifelse(zval_f_org$Taxa %in% tx_f[,"Genus"],
@@ -238,6 +251,46 @@ for(i in 1:length(zval_l)){#i <- 2
                   p_oc=p.adjust(p_oc,method="BH")),
             sprintf("%s/cor_test_%s_%s.csv",save.dir,ra,fb))
   
+  
+  cr_ab <- c()
+  cr_ab2 <- c()
+  cr_oc <- c()
+  p_ab <- c()
+  p_ab2 <- c()
+  p_oc <- c()
+  
+  for(pl in 1:length(plants)){#pl <- 1
+    crab <-  cor.test(glef[which(glef$plant==plants[pl]&glef$target_k=="Fungi"),
+                           "abundance"],
+                      glef[which(glef$plant==plants[pl]&glef$target_k=="Fungi"),
+                           "z_even"],method="kendall")
+    crab2 <-  cor.test(glef[which(glef$plant==plants[pl]&glef$target_k=="Prokaryote"),
+                            "abundance"],
+                       glef[which(glef$plant==plants[pl]&glef$target_k=="Prokaryote"),
+                            "z_even"],method="kendall")
+    
+    
+    cr_ab[pl] <- crab$estimate
+    p_ab[pl] <- crab$p.value
+    
+    cr_ab2[pl] <- crab2$estimate
+    p_ab2[pl] <- crab2$p.value
+    
+    croc <-  cor.test(glef[which(glef$plant==plants[pl]),"occurence"],
+                      glef[which(glef$plant==plants[pl]),"z_even"],method="kendall")
+    cr_oc[pl] <- croc$estimate
+    p_oc[pl] <- croc$p.value
+  }
+  
+  write.csv(cbind(plant=plants,
+                  cr_ab_f=cr_ab,
+                  p_ab_f=p.adjust(p_ab,method="BH"),
+                  cr_ab_p=cr_ab2,
+                  p_ab_p=p.adjust(p_ab2,method="BH"),
+                  cr_oc=cr_oc,
+                  p_oc=p.adjust(p_oc,method="BH")),
+            sprintf("%s/cor_test_even_%s_%s.csv",save.dir,ra,fb))
+  
   g1 <- ggplot(glef,
                aes(x=log(abundance),y=z_land))+
     #geom_vline(xintercept = 0,linewidth=0.2,color="gray60")+
@@ -392,6 +445,46 @@ for(i in 1:length(zval_l)){#i <- 2
                   cr_oc=cr_oc,
                   p_oc=p.adjust(p_oc,method="BH")),
             sprintf("%s/cor_test_%s_%s.csv",save.dir,ra,fb))
+  
+  
+  cr_ab <- c()
+  cr_ab2 <- c()
+  cr_oc <- c()
+  p_ab <- c()
+  p_ab2 <- c()
+  p_oc <- c()
+  
+  for(pl in 1:length(plants)){#pl <- 1
+    crab <-  cor.test(glef[which(glef$plant==plants[pl]&glef$target_k=="Fungi"),
+                           "abundance"],
+                      glef[which(glef$plant==plants[pl]&glef$target_k=="Fungi"),
+                           "z_even"],method="kendall")
+    crab2 <-  cor.test(glef[which(glef$plant==plants[pl]&glef$target_k=="Prokaryote"),
+                            "abundance"],
+                       glef[which(glef$plant==plants[pl]&glef$target_k=="Prokaryote"),
+                            "z_even"],method="kendall")
+    
+    
+    cr_ab[pl] <- crab$estimate
+    p_ab[pl] <- crab$p.value
+    
+    cr_ab2[pl] <- crab2$estimate
+    p_ab2[pl] <- crab2$p.value
+    
+    croc <-  cor.test(glef[which(glef$plant==plants[pl]),"occurence"],
+                      glef[which(glef$plant==plants[pl]),"z_even"],method="kendall")
+    cr_oc[pl] <- croc$estimate
+    p_oc[pl] <- croc$p.value
+  }
+  
+  write.csv(cbind(plant=plants,
+                  cr_ab_f=cr_ab,
+                  p_ab_f=p.adjust(p_ab,method="BH"),
+                  cr_ab_p=cr_ab2,
+                  p_ab_p=p.adjust(p_ab2,method="BH"),
+                  cr_oc=cr_oc,
+                  p_oc=p.adjust(p_oc,method="BH")),
+            sprintf("%s/cor_test_even_%s_%s.csv",save.dir,ra,fb))
   
   g1 <- ggplot(glef,
                aes(x=log(abundance),y=z_land))+
