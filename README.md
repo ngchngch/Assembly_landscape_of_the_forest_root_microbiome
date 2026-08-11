@@ -931,3 +931,4 @@ Script_in_local_computer/04_rarefaction_barplot.R
   and additional data prepared on the local computer (`Import_data/`,
   `color/`). Note: `Base_data/` and `packages/` referenced here are not
   duplicated in this repository.
+- `revise_260518/` — Working directory structure use in the additional analysis for gLV simulation.
